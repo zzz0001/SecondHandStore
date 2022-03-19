@@ -1,11 +1,12 @@
 package com.zzz.controller;
 
 
+import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Orders;
+import com.zzz.pojo.entity.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.OrdersService;
-import com.zzz.service.StoreService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
@@ -33,7 +34,7 @@ public class OrdersController {
     private AccountService accountService;
 
     @Resource
-    private StoreService storeService;
+    private JwtUtils jwtUtils;
 
     @ApiOperation(value = "订单生成接口")
     @RequiresAuthentication
@@ -58,11 +59,18 @@ public class OrdersController {
         return Result.success(order);
     }
 
+    @RequiresAuthentication
+    @GetMapping("/orderList/{studentId}")
+    public Result getOrderList(@PathVariable Long studentId) {
+        Result result = orderService.getByStudent(studentId);
+        return result;
+    }
+
     @ApiOperation(value = "付款接口")
     @RequiresAuthentication
-    @PutMapping("/order/{orderId}")
-    public Result transfer(@PathVariable Long orderId) {
-        Result result = orderService.payment(orderId);
+    @PutMapping("/order")
+    public Result transfer(@RequestBody OrderVo orderVo) {
+        Result result = orderService.payment(orderVo);
         return result;
     }
 

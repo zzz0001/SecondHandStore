@@ -5,6 +5,8 @@ import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Image;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * <p>
  *  服务类
@@ -22,4 +24,8 @@ public interface ImageService extends IService<Image> {
     Result removeByCommentId(Long id);
 
     Result removeByGoodsId(Long id);
+
+    List<String> getImagesByGoodsId(Long goodsId);
+
+    List<String> getImagesByCommentId(Long commentId);
 }

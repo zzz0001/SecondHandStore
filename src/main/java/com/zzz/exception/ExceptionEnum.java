@@ -15,7 +15,8 @@ public enum ExceptionEnum {
     REGISTER_ERROR(105,"注册失败,请稍后重试"),
     PASSWORD_ERROR(106,"密码错误"),
     PAGE_ERROR(404,"页面不存在"),
-    NETWORK_ERROR(405,"网络错误");
+    NETWORK_ERROR(405,"网络错误"),
+    ORDER_EXIST(415,"订单已存在");
 
     private Integer code;
     private String message;

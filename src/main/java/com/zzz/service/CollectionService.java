@@ -1,5 +1,6 @@
 package com.zzz.service;
 
+import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Collection;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface CollectionService extends IService<Collection> {
 
+    Result saveCollection(Collection collection);
 }

@@ -34,11 +34,8 @@ public class CollectionController {
     @PostMapping("/collection")
     public Result add(@RequestBody Collection collection) {
         collection.setDeleted(false);
-        boolean save = collectionService.save(collection);
-        if (save) {
-            return Result.success("收藏成功");
-        }
-        return Result.fail("收藏失败");
+        Result result = collectionService.saveCollection(collection);
+        return result;
     }
 
     @RequiresAuthentication

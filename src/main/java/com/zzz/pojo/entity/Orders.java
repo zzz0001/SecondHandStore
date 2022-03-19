@@ -43,8 +43,17 @@ public class Orders implements Serializable {
     @ApiModelProperty(value = "商品总价")
     private Double totalPrice;
 
-    @ApiModelProperty(value = "下单时间")
+    @ApiModelProperty(value = "付款时间")
     private LocalDateTime orderDate;
+
+    @ApiModelProperty(value = "发货时间")
+    private LocalDateTime deliveryDate;
+
+    @ApiModelProperty(value = "收货时间")
+    private LocalDateTime receiveDate;
+
+    @ApiModelProperty(value = "退货时间")
+    private LocalDateTime returnDate;
 
     @ApiModelProperty(value = "订单状态（1确认付款，2确认发货，3确认收货，4退款）")
     private Integer orderStatus;

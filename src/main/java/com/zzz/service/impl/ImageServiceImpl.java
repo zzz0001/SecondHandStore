@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -69,6 +71,28 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> implements
             return Result.success("删除成功");
         }
         return Result.fail("删除失败");
+    }
+
+    @Override
+    public List<String> getImagesByGoodsId(Long goodsId) {
+        QueryWrapper<Image> wrapper = new QueryWrapper<Image>().eq("goods_id", goodsId);
+        List<Image> images = baseMapper.selectList(wrapper);
+        ArrayList<String> imageList = new ArrayList<>();
+        images.forEach( image -> {
+            imageList.add(image.getImagePath());
+        });
+        return imageList;
+    }
+
+    @Override
+    public List<String> getImagesByCommentId(Long commentId) {
+        QueryWrapper<Image> wrapper = new QueryWrapper<Image>().eq("comment_id", commentId);
+        List<Image> images = baseMapper.selectList(wrapper);
+        ArrayList<String> imageList = new ArrayList<>();
+        images.forEach( image -> {
+            imageList.add(image.getImagePath());
+        });
+        return imageList;
     }
 
 }
