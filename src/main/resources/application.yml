@@ -1,0 +1,87 @@
+# 应用名称
+spring:
+  # 测试环境
+  profiles:
+    active: test
+  application:
+    name: SecondHandStore
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3306/secondhand?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    ###################以下为druid增加的配置###########################
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      db-type: mysql
+      # 下面为连接池的补充设置，应用到上面所有数据源中
+      # 初始化大小，最小，最大
+      initial-size: 5
+      # 最小连接池数量
+      min-idle: 5
+      # 最大连接池数量
+      max-active: 50
+      # 配置获取连接等待超时的时间
+      max-wait: 60000
+      #申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
+      test-while-idle: true
+      #既作为检测的间隔时间又作为testWhileIdel执行的依据
+      time-between-eviction-runs-millis: 60000
+      #销毁线程时检测当前连接的最后活动时间和当前时间差大于该值时，关闭当前连接
+      min-evictable-idle-time-millis: 30000
+      #用来检测连接是否有效的sql 必须是一个查询语句
+      #mssql中为 select 1
+      #mysql中为 select 'x'
+      #oracle中为 select 1 from dual
+      validation-query: select 'x'
+      #申请连接时会执行validationQuery检测连接是否有效,开启会降低性能,默认为true
+      test-on-borrow: false
+      #归还连接时会执行validationQuery检测连接是否有效,开启会降低性能,默认为true
+      test-on-return: false
+      #当数据库抛出不可恢复的异常时,抛弃该连接
+      #exception-sorter: true
+      #是否缓存preparedStatement,mysql5.5+建议开启
+      pool-prepared-statements: true
+      #当值大于0时poolPreparedStatements会自动修改为true
+      max-pool-prepared-statement-per-connection-size: 20
+  #########以上为配置druid添加的配置######################
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+
+  redis:
+    host: 192.168.163.131
+    port: 6379
+    database: 0
+    password:
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 20
+        max-wait: -1
+        min-idle: 0
+        max-idle: 8
+  jackson:
+    time-zone: GMT+8
+
+# 应用服务 WEB 访问端口
+server:
+  port: 8081
+
+# 配置日志和逻辑删除
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+zzz:
+  jwt:
+    # 加密秘钥
+    secret: zf4e2e52034348f86b67cde581c0f9eb5z
+    # token有效时长，7天，单位秒
+    expire: 604800
+    header: token
