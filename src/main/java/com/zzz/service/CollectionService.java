@@ -1,5 +1,6 @@
 package com.zzz.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Collection;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -15,4 +16,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface CollectionService extends IService<Collection> {
 
     Result saveCollection(Collection collection);
+
+    Result getCollection(Long studentId, Page<Collection> page);
 }

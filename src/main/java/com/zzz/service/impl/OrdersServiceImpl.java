@@ -11,6 +11,7 @@ import com.zzz.pojo.entity.Account;
 import com.zzz.pojo.entity.Goods;
 import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.Store;
+import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.ImageService;
@@ -75,9 +76,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         return Result.fail("订单生成失败");
     }
 
-    @Override
-    public Result getByStudent(Long studentId) {
-        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id", studentId);
+    private Result getResultByOrder(QueryWrapper<Orders> wrapper) {
         List<Orders> orders = baseMapper.selectList(wrapper);
         ArrayList<Object> result = new ArrayList<>();
         orders.forEach(order ->{
@@ -94,6 +93,19 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         return Result.success(result);
     }
 
+    @Override
+    public Result getByStudentId(Long studentId) {
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).orderByDesc("create_time");
+        return getResultByOrder(wrapper);
+    }
+
+    @Override
+    public Result getByStatus(Long studentId,Integer status) {
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("order_status", status).orderByDesc("create_time");
+        return getResultByOrder(wrapper);
+    }
+
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result payment(OrderVo orderVo) {
@@ -104,12 +116,12 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         Goods goods = goodsMapper.selectById(goodsId);
         Integer goodsInventory = goods.getGoodsInventory();
         if (goodsInventory < order.getGoodsNum()) {
-            return Result.fail("商品库存不足,付款失败");
+            return Result.fail("商品库存不足");
         }
         Long studentId = order.getStudentId();
         Account account = accountService.getById(studentId);
         if (!account.getPassword().equals(SecureUtil.md5(password))){
-            return Result.fail("密码错误，支付失败");
+            return Result.fail("密码错误");
         }
         Double price = order.getTotalPrice();
         accountService.transfer(studentId, -999999L, price);
@@ -125,6 +137,23 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             return Result.success("付款成功");
         }
         return Result.fail("付款失败");
+    }
+
+    @Override
+    public Result paymentList(OrderListVo orderListVo) {
+        ArrayList<String> result = new ArrayList<>();
+        ArrayList<Long> orderIdList = orderListVo.getOrderIdList();
+        orderIdList.forEach(orderId ->{
+            OrderVo orderVo = new OrderVo();
+            orderVo.setOrderId(orderId);
+            orderVo.setPassword(orderListVo.getPassword());
+            Result payment = payment(orderVo);
+            if (payment.getCode() != 200){
+                String message = "订单号："+ orderId + " 支付失败, 原因：" + payment.getMessage();
+                result.add(message);
+            }
+        });
+        return Result.success(result);
     }
 
     @Override
@@ -172,7 +201,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         accountService.transfer(sell, buy, price);
         log.info("商家{} 向买家{} 转账 {}", sell, buy, price);
         // 将订单状态改为已退货
-        order.setOrderStatus(4);
+        order.setOrderStatus(5);
         order.setReturnDate(LocalDateTime.now());
         Long goodsId = order.getGoodsId();
         Goods goods = goodsMapper.selectById(goodsId);

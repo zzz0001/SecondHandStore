@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
  * @since 2022-03-02
  */
 public interface AccountService extends IService<Account> {
+
     Result transfer(Long buyer, Long seller, Double money);
 
     boolean saveAccount(Account account);

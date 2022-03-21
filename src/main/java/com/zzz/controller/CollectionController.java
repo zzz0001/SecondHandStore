@@ -1,7 +1,6 @@
 package com.zzz.controller;
 
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
@@ -49,8 +48,8 @@ public class CollectionController {
     }
 
     @RequiresAuthentication
-    @GetMapping("/collection/{collectionID}")
-    public Result get(@PathVariable Long collectionID) {
+    @GetMapping("/collectionById/{collectionID}")
+    public Result getCollectionById(@PathVariable Long collectionID) {
         Collection collection = collectionService.getById(collectionID);
         if (collection == null) {
             return Result.fail("找不到该收藏ID");
@@ -58,15 +57,25 @@ public class CollectionController {
         return Result.success(collection);
     }
 
+//    @RequiresAuthentication
+//    @GetMapping("/collection/{pageId}")
+//    public Result page(@PathVariable Integer pageId,
+//                       HttpServletRequest request) {
+//        Page<Collection> page = new Page<>(pageId, 10);
+//        Long studentId = jwtUtils.getStudentId(request);
+//        QueryWrapper<Collection> queryWrapper = new QueryWrapper<Collection>().eq("student_id", studentId).orderByDesc("collection_id");
+//        Page<Collection> collectionPage = collectionService.page(page, queryWrapper);
+//        return Result.success(collectionPage);
+//    }
+
     @RequiresAuthentication
     @GetMapping("/collection/{pageId}")
-    public Result page(@PathVariable Integer pageId,
+    public Result getCollection(@PathVariable Integer pageId,
                        HttpServletRequest request) {
         Page<Collection> page = new Page<>(pageId, 10);
         Long studentId = jwtUtils.getStudentId(request);
-        QueryWrapper<Collection> queryWrapper = new QueryWrapper<Collection>().eq("student_id", studentId).orderByDesc("collection_id");
-        Page<Collection> collectionPage = collectionService.page(page, queryWrapper);
-        return Result.success(collectionPage);
+        Result result = collectionService.getCollection(studentId,page);
+        return result;
     }
 
 }

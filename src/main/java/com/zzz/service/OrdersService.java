@@ -1,8 +1,9 @@
 package com.zzz.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Orders;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
 
 /**
@@ -17,6 +18,8 @@ public interface OrdersService extends IService<Orders> {
 
     Result payment(OrderVo orderVo);
 
+    Result paymentList(OrderListVo orderListVo);
+
     Result delivery(Long orderId);
 
     Result receive(Long orderId);
@@ -25,5 +28,7 @@ public interface OrdersService extends IService<Orders> {
 
     Result saveOrder(Orders order);
 
-    Result getByStudent(Long studentId);
+    Result getByStudentId(Long studentId);
+
+    Result getByStatus(Long studentId,Integer status);
 }

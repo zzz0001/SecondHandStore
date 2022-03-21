@@ -4,6 +4,7 @@ package com.zzz.controller;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Orders;
+import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.OrdersService;
@@ -62,7 +63,16 @@ public class OrdersController {
     @RequiresAuthentication
     @GetMapping("/orderList/{studentId}")
     public Result getOrderList(@PathVariable Long studentId) {
-        Result result = orderService.getByStudent(studentId);
+        Result result = orderService.getByStudentId(studentId);
+        return result;
+    }
+
+    @RequiresAuthentication
+    @GetMapping("/orderListByStatus/{status}")
+    public Result getOrderListByStatus(@PathVariable Integer status,
+                                       HttpServletRequest request) {
+        Long studentId = jwtUtils.getStudentId(request);
+        Result result = orderService.getByStatus(studentId,status);
         return result;
     }
 
@@ -71,6 +81,14 @@ public class OrdersController {
     @PutMapping("/order")
     public Result transfer(@RequestBody OrderVo orderVo) {
         Result result = orderService.payment(orderVo);
+        return result;
+    }
+
+    @ApiOperation(value = "购物车付款接口")
+    @RequiresAuthentication
+    @PutMapping("/orders/payment")
+    public Result paymentAll(@RequestBody OrderListVo orderListVo) {
+        Result result = orderService.paymentList(orderListVo);
         return result;
     }
 

@@ -15,7 +15,7 @@ import com.zzz.pojo.entity.vo.GoodsVO;
  */
 public interface GoodsService extends IService<Goods> {
 
-    Boolean saveOrUpdateGoodsVO(GoodsVO goodsVO, Long studentId);
+    Result saveOrUpdateGoodsVO(GoodsVO goodsVO, Long studentId);
 
     Result getGoods(Long goodsId);
 

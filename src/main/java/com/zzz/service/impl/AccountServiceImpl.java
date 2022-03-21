@@ -3,6 +3,7 @@ package com.zzz.service.impl;
 import cn.hutool.crypto.SecureUtil;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
+import com.zzz.exception.BusinessException;
 import com.zzz.mapper.UserMapper;
 import com.zzz.pojo.entity.Account;
 import com.zzz.mapper.AccountMapper;
@@ -58,10 +59,11 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     public Result transfer(Long buyer, Long seller, Double money) {
         Account buy = baseMapper.selectById(buyer);
         if(buy.getStatus() == 1){
-            return Result.fail("账户被锁定，不允许付款操作");
+            throw new BusinessException("账户被锁定，不允许付款操作");
         }
-        if (buy.getMoney()<money){
-            return Result.fail("账户余额不足，请先充值后付款");
+        if(buy.getMoney()<money){
+            log.info("{}账户余额不足",buyer);
+            throw new BusinessException("账户余额不足，请先充值后付款");
         }
         buy.setMoney(buy.getMoney()-money);
         Account sell = baseMapper.selectById(seller);

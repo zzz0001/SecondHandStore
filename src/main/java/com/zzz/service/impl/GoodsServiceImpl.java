@@ -36,7 +36,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Boolean saveOrUpdateGoodsVO(GoodsVO goodsVO, Long studentId) {
+    public Result saveOrUpdateGoodsVO(GoodsVO goodsVO, Long studentId) {
         Goods goods = new Goods();
         BeanUtil.copyProperties(goodsVO, goods);
         goods.setStudentId(studentId);
@@ -61,9 +61,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
             boolean s2 = imageService.saveBatch(images);
         }
         if (flag == 1) {
-            return true;
+            return Result.success("操作成功");
         }
-        return false;
+        return Result.fail("操作失败");
     }
 
     @Override
@@ -97,7 +97,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
     @Override
     public Result addInventory(Long goodsId, Integer inventory) {
         Goods goods = baseMapper.selectById(goodsId);
-        goods.setGoodsInventory(goods.getGoodsInventory() + inventory);
+        if (inventory < 0 && goods.getGoodsInventory() < Math.abs(inventory) ){
+            goods.setGoodsInventory(0);
+        }else{
+            goods.setGoodsInventory(goods.getGoodsInventory() + inventory);
+        }
         int update = baseMapper.updateById(goods);
         if (update == 1) {
             return Result.success("增加库存成功");

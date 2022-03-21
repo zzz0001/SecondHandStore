@@ -55,7 +55,7 @@ public class Orders implements Serializable {
     @ApiModelProperty(value = "退货时间")
     private LocalDateTime returnDate;
 
-    @ApiModelProperty(value = "订单状态（1确认付款，2确认发货，3确认收货，4退款）")
+    @ApiModelProperty(value = "订单状态（1确认付款，2确认发货，3确认收货，4待评价，5退货）")
     private Integer orderStatus;
 
     @ApiModelProperty(value = "逻辑删除")

@@ -47,11 +47,8 @@ public class GoodsController {
         if (account.getStudentId() == 1) {
             return Result.fail("账户被锁定，不允许操作");
         }
-        Boolean save = goodsService.saveOrUpdateGoodsVO(goodsVO,studentId);
-        if (save){
-            return Result.success("操作成功");
-        }
-        return Result.fail("操作失败");
+        Result result = goodsService.saveOrUpdateGoodsVO(goodsVO, studentId);
+        return result;
     }
 
     @GetMapping("/goodsPage/{page}")
@@ -86,9 +83,9 @@ public class GoodsController {
     }
 
     @RequiresAuthentication
-    @PutMapping("/goods/inventory")
-    public Result inventory(@RequestParam("goodsId") Long goodsId,
-                            @RequestParam("inventory") Integer inventory){
+    @PutMapping("/goods/inventory/{goodsId}/{inventory}")
+    public Result inventory(@PathVariable("goodsId") Long goodsId,
+                            @PathVariable("inventory") Integer inventory){
         Result result = goodsService.addInventory(goodsId,inventory);
         return result;
     }
