@@ -73,6 +73,12 @@ public class StoreController {
         return Result.success(store);
     }
 
+    @GetMapping("/storeByGoodsId/{goodsId}")
+    public Result getStoreByGoodsId(@PathVariable Long goodsId){
+        Result result = storeService.getByGoodsId(goodsId);
+        return result;
+    }
+
     @RequiresAuthentication
     @PutMapping("/store")
     public Result changeStore(@RequestBody Store store,

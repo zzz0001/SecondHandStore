@@ -40,7 +40,7 @@ public class ChatController {
         QueryWrapper<Chat> wrapper = new QueryWrapper<Chat>();
         wrapper.and(Wrapper -> Wrapper.eq("send_id", studentId).eq("receive_id", receiveId))
                 .or(Wrapper -> Wrapper.eq("send_id", receiveId).eq("receive_id", studentId))
-                .orderByDesc("create_time");
+                .orderByAsc("create_time");
         List<Chat> chats = chatService.list(wrapper);
         return Result.success(chats);
     }

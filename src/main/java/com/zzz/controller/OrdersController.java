@@ -8,6 +8,7 @@ import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.OrdersService;
+import com.zzz.socket.WebSocket;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
@@ -36,6 +37,9 @@ public class OrdersController {
 
     @Resource
     private JwtUtils jwtUtils;
+
+    @Resource
+    private WebSocket webSocket;
 
     @ApiOperation(value = "订单生成接口")
     @RequiresAuthentication
@@ -68,6 +72,15 @@ public class OrdersController {
     }
 
     @RequiresAuthentication
+    @GetMapping("/orderListByStoreId/{status}")
+    public Result getOrderListByStoreId(@PathVariable Integer status,
+                                        HttpServletRequest request) {
+        Long studentId = jwtUtils.getStudentId(request);
+        Result result = orderService.getByStoreIdAndStatus(studentId,status);
+        return result;
+    }
+
+    @RequiresAuthentication
     @GetMapping("/orderListByStatus/{status}")
     public Result getOrderListByStatus(@PathVariable Integer status,
                                        HttpServletRequest request) {
@@ -81,6 +94,9 @@ public class OrdersController {
     @PutMapping("/order")
     public Result transfer(@RequestBody OrderVo orderVo) {
         Result result = orderService.payment(orderVo);
+        if (result.getCode() == 200){
+            webSocket.sendMessage(result.getData().toString(),"付款成功");
+        }
         return result;
     }
 

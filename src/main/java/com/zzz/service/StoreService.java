@@ -17,4 +17,5 @@ public interface StoreService extends IService<Store> {
 
     Result saveStore(Store store, User user);
 
+    Result getByGoodsId(Long goodsId);
 }

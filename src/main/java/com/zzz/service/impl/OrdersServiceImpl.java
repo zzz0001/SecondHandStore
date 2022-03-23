@@ -7,15 +7,14 @@ import com.zzz.Util.Result;
 import com.zzz.mapper.GoodsMapper;
 import com.zzz.mapper.OrdersMapper;
 import com.zzz.mapper.StoreMapper;
-import com.zzz.pojo.entity.Account;
-import com.zzz.pojo.entity.Goods;
-import com.zzz.pojo.entity.Orders;
-import com.zzz.pojo.entity.Store;
+import com.zzz.mapper.UserMapper;
+import com.zzz.pojo.entity.*;
 import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.ImageService;
 import com.zzz.service.OrdersService;
+import com.zzz.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,11 +49,17 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     @Resource
     private ImageService imageService;
 
+    @Resource
+    private UserMapper userMapper;
+
+    @Resource
+    private WebSocket webSocket;
+
     @Override
     public Result saveOrder(Orders order) {
         Long goodsId = order.getGoodsId();
         Long studentId = order.getStudentId();
-        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id",studentId).eq("goods_id",goodsId);
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id",studentId).eq("goods_id",goodsId).eq("order_status",0);
         Orders orders = baseMapper.selectOne(wrapper);
         if (orders != null){
             return Result.fail(415,"商品已添加到购物车,不能重复添加",orders.getOrderId());
@@ -93,10 +98,37 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         return Result.success(result);
     }
 
+    private Result getResultByStoreId(QueryWrapper<Orders> wrapper) {
+        List<Orders> orders = baseMapper.selectList(wrapper);
+        ArrayList<Object> result = new ArrayList<>();
+        orders.forEach(order ->{
+            HashMap<String, Object> map = new HashMap<>();
+            List<String> images = imageService.getImagesByGoodsId(order.getGoodsId());
+            Goods goods = goodsMapper.selectById(order.getGoodsId());
+            User user = userMapper.selectById(order.getStudentId());
+            map.put("order",order);
+            map.put("images",images);
+            map.put("goods",goods);
+            map.put("user",user);
+            result.add(map);
+        });
+        return Result.success(result);
+    }
+
     @Override
     public Result getByStudentId(Long studentId) {
         QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).orderByDesc("create_time");
         return getResultByOrder(wrapper);
+    }
+
+
+    @Override
+    public Result getByStoreIdAndStatus(Long studentId, Integer status) {
+        QueryWrapper<Store> queryWrapper = new QueryWrapper<Store>().eq("student_id", studentId);
+        Store store = storeMapper.selectOne(queryWrapper);
+        Long storeId = store.getStoreId();
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).eq("order_status",status).orderByDesc("order_date");
+        return getResultByStoreId(wrapper);
     }
 
     @Override
@@ -134,7 +166,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         order.setOrderDate(LocalDateTime.now());
         int i = baseMapper.updateById(order);
         if (i == 1 && update == 1) {
-            return Result.success("付款成功");
+            return Result.success("付款成功",goods.getStudentId());
         }
         return Result.fail("付款失败");
     }

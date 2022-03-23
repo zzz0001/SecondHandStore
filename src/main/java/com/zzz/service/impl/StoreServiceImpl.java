@@ -1,9 +1,12 @@
 package com.zzz.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
+import com.zzz.mapper.GoodsMapper;
 import com.zzz.mapper.StoreMapper;
 import com.zzz.mapper.UserMapper;
+import com.zzz.pojo.entity.Goods;
 import com.zzz.pojo.entity.Store;
 import com.zzz.pojo.entity.User;
 import com.zzz.service.StoreService;
@@ -26,6 +29,9 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private GoodsMapper goodsMapper;
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result saveStore(Store store, User user) {
@@ -38,5 +44,17 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
             return Result.success(store);
         }
         return Result.fail("店铺开通失败");
+    }
+
+    @Override
+    public Result getByGoodsId(Long goodsId) {
+        Goods goods = goodsMapper.selectById(goodsId);
+        Long studentId = goods.getStudentId();
+        QueryWrapper<Store> queryWrapper = new QueryWrapper<Store>().eq("student_id", studentId);
+        Store store = baseMapper.selectOne(queryWrapper);
+        if (store == null){
+            return Result.fail("没有找到该店铺");
+        }
+        return Result.success(store);
     }
 }

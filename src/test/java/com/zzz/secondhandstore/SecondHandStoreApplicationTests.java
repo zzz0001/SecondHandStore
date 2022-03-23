@@ -5,6 +5,7 @@ import com.zzz.pojo.entity.User;
 import com.zzz.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
@@ -39,9 +40,44 @@ class SecondHandStoreApplicationTests {
     }
 
     @Test
+    void test11(){
+        redisTemplate.opsForValue().set("ABC","AAA");
+    }
+
+    @Test
+    void test12(){
+        redisTemplate.boundListOps("list").rightPush("中国");
+        redisTemplate.boundListOps("list").rightPush("B");
+        redisTemplate.boundListOps("list").rightPush("C");
+    }
+
+    @Test
     void test2(){
         List<User> users = (List<User>) redisTemplate.opsForValue().get("users");
         users.forEach(user -> System.out.println(user));
     }
 
+
+    @Test
+    void test3(){
+        BoundListOperations user = redisTemplate.boundListOps("user");
+        user.leftPush("A");
+        user.leftPush("B");
+        user.leftPush("C");
+        System.out.println("添加成功");
+    }
+    @Test
+    void test4(){
+        BoundListOperations user = redisTemplate.boundListOps("user");
+        List range = user.range(0, -1);
+        range.forEach(System.out::println);
+        redisTemplate.delete("user");
+        System.out.println("删除成功");
+    }
+
+    @Test
+    void test5(){
+        Boolean hasKey = redisTemplate.hasKey("user");
+        System.out.println(hasKey);
+    }
 }

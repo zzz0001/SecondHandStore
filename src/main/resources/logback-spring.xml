@@ -75,7 +75,7 @@
     <!-- 开发环境和测试环境 -->
     <springProfile name="dev,test">
         <!-- 修改此处扫描包名,该包下的日志才会生效 -->
-        <logger name="com.zzz" level="INFO">
+        <logger name="com.zzz" level="DEBUG">
             <appender-ref ref="CONSOLE" />
 <!--            <appender-ref ref="ROLLING_FILE" />-->
         </logger>
