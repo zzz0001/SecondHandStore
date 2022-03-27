@@ -32,6 +32,7 @@ public class ChatController {
     @Resource
     private JwtUtils jwtUtils;
 
+
     @RequiresAuthentication
     @GetMapping("/chat/{receiveId}")
     public Result chat(@PathVariable Long receiveId,
@@ -40,7 +41,7 @@ public class ChatController {
         QueryWrapper<Chat> wrapper = new QueryWrapper<Chat>();
         wrapper.and(Wrapper -> Wrapper.eq("send_id", studentId).eq("receive_id", receiveId))
                 .or(Wrapper -> Wrapper.eq("send_id", receiveId).eq("receive_id", studentId))
-                .orderByAsc("create_time");
+                .orderByDesc("chat_id").last("limit 50");
         List<Chat> chats = chatService.list(wrapper);
         return Result.success(chats);
     }
@@ -48,12 +49,22 @@ public class ChatController {
     @RequiresAuthentication
     @PostMapping("/chat")
     public Result chat(@RequestBody Chat chat) {
-        chat.setDeleted(false);
-        boolean save = chatService.save(chat);
-        if (save) {
-            return Result.success("消息发送成功");
-        }
-        return Result.fail("消息发送失败");
+        Result result = chatService.saveChat(chat);
+        return result;
+    }
+
+    @RequiresAuthentication
+    @PutMapping("/chat/{chatId}")
+    public Result changeChat(@PathVariable Long chatId) {
+        Result result = chatService.ReadChat(chatId);
+        return result;
+    }
+
+    @RequiresAuthentication
+    @PostMapping("/chatList")
+    public Result changeChatList(@RequestBody List<Long> chatList) {
+        Result result = chatService.ReadChatList(chatList);
+        return result;
     }
 
     @RequiresAuthentication

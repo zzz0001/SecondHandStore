@@ -1,7 +1,10 @@
 package com.zzz.service;
 
+import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Chat;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ChatService extends IService<Chat> {
 
+    Result saveChat(Chat chat);
+
+    Result ReadChat(Long chatId);
+
+    Integer newChatNum(Long sendId,Long receiveId);
+
+    Result ReadChatList(List<Long> chatList);
 }

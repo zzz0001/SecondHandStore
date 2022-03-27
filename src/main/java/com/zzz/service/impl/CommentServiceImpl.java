@@ -1,13 +1,15 @@
 package com.zzz.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
-import com.zzz.pojo.entity.Comment;
 import com.zzz.mapper.CommentMapper;
+import com.zzz.mapper.OrdersMapper;
+import com.zzz.pojo.entity.Comment;
 import com.zzz.pojo.entity.Image;
+import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.vo.CommentVO;
 import com.zzz.service.CommentService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.service.ImageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Resource
     private ImageService imageService;
 
+    @Resource
+    private OrdersMapper ordersMapper;
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result saveComment(CommentVO commentVO) {
@@ -48,6 +53,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         });
         boolean sava = imageService.saveBatch(images);
         if (insert == 1 && sava){
+            Long orderId = commentVO.getOrderId();
+            Orders orders = ordersMapper.selectById(orderId);
+            orders.setOrderStatus(4);
+            ordersMapper.updateById(orders);
             return Result.success("评价成功");
         }
         return Result.fail("评价失败");

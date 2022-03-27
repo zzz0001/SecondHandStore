@@ -70,10 +70,10 @@ public class UserController {
     @GetMapping("/user/{studentId}")
     public Result getUser(@PathVariable Long studentId) {
         User user = userService.getById(studentId);
-        user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
         if (user == null) {
             return Result.fail("不存在该用户");
         }
+        user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
         return Result.success(user);
     }
 

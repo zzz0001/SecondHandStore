@@ -24,4 +24,10 @@ public interface GoodsService extends IService<Goods> {
     Result addInventory(Long goodsId, Integer inventory);
 
     Result getGoodsByStudentId(Long studentId);
+
+    Result getGoodsByPage(Integer page);
+
+    Result getGoodsByName(String goodsName, Integer page);
+
+    Result getGoodsByCategory(Integer category,Integer page);
 }

@@ -18,6 +18,9 @@ public class ResultMessage {
 //    是否是系统消息
     private boolean systemMsgFlag;
 
+//    消息类别
+    private Integer messageCode;
+
 //     发送方Name
     private String fromName;
 

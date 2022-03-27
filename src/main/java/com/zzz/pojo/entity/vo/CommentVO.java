@@ -19,11 +19,15 @@ public class CommentVO implements Serializable {
     @ApiModelProperty(value = "商品ID")
     private Long goodsId;
 
+    @ApiModelProperty(value = "订单Id")
+    private Long orderId;
+
     @ApiModelProperty(value = "评价内容")
     private String content;
 
     @ApiModelProperty(value = "评价星级")
     private Integer grade;
+
 
     @ApiModelProperty(value = "商品图片链接")
     private List<String> images;

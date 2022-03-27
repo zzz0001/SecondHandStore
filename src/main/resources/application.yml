@@ -51,7 +51,7 @@ spring:
       max-request-size: 1024MB
 
   redis:
-    host: 192.168.163.131
+    host: 192.168.163.100
     port: 6379
     database: 0
     password:
@@ -71,12 +71,13 @@ server:
 
 # 配置日志和逻辑删除
 mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       logic-delete-value: 1
       logic-not-delete-value: 0
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 
 zzz:
   jwt:

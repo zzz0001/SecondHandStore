@@ -1,12 +1,9 @@
 package com.zzz.controller;
 
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Account;
-import com.zzz.pojo.entity.Goods;
 import com.zzz.pojo.entity.vo.GoodsVO;
 import com.zzz.service.AccountService;
 import com.zzz.service.GoodsService;
@@ -53,9 +50,8 @@ public class GoodsController {
 
     @GetMapping("/goodsPage/{page}")
     public Result goodsPage(@PathVariable Integer page){
-        Page<Goods> goodsPage = new Page<>(page,2);
-        Page<Goods> goods = goodsService.page(goodsPage, new QueryWrapper<Goods>().orderByDesc("goods_id"));
-        return Result.success(goods);
+        Result result = goodsService.getGoodsByPage(page);
+        return result;
     }
 
     @GetMapping("/goods/{goodsId}")
@@ -64,9 +60,21 @@ public class GoodsController {
         return result;
     }
 
+    @GetMapping("/goodsByName/{goodsName}/{page}")
+    public Result getGoodsByName(@PathVariable String goodsName,@PathVariable Integer page) {
+        Result result = goodsService.getGoodsByName(goodsName,page);
+        return result;
+    }
+
     @GetMapping("/goodsByStudentId/{studentId}")
     public Result getGoodsByStudentId(@PathVariable Long studentId) {
         Result result = goodsService.getGoodsByStudentId(studentId);
+        return result;
+    }
+
+    @GetMapping("/goodsByCategory/{category}/{page}")
+    public Result getGoodsByCategory(@PathVariable Integer category,@PathVariable Integer page) {
+        Result result = goodsService.getGoodsByCategory(category,page);
         return result;
     }
 

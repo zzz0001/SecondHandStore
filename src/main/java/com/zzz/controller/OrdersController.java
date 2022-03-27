@@ -95,7 +95,7 @@ public class OrdersController {
     public Result transfer(@RequestBody OrderVo orderVo) {
         Result result = orderService.payment(orderVo);
         if (result.getCode() == 200){
-            webSocket.sendMessage(result.getData().toString(),"付款成功");
+            webSocket.sendMessage(result.getData().toString(),"1");
         }
         return result;
     }

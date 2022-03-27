@@ -2,6 +2,7 @@ package com.zzz.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
 import com.zzz.mapper.GoodsMapper;
@@ -127,5 +128,44 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
             arrayList.add(map);
         });
         return Result.success(arrayList);
+    }
+
+
+    private Result getGoodsResult(Page<Goods> resultPage) {
+        List<Goods> goodsList = resultPage.getRecords();
+        ArrayList<Object> list = new ArrayList<>();
+        HashMap<String, Object> result = new HashMap<>();
+        goodsList.forEach(goods ->{
+            List<String> images = imageService.getImagesByGoodsId(goods.getGoodsId());
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("goods",goods);
+            map.put("images",images);
+            list.add(map);
+        });
+        resultPage.setRecords(null);
+        result.put("goods",list);
+        result.put("page",resultPage);
+        return Result.success(result);
+    }
+
+    @Override
+    public Result getGoodsByPage(Integer page) {
+        Page<Goods> goodsPage = new Page<>(page,10);
+        Page<Goods> resultPage = baseMapper.selectPage(goodsPage, new QueryWrapper<Goods>().orderByDesc("goods_id"));
+        return getGoodsResult(resultPage);
+    }
+
+    @Override
+    public Result getGoodsByName(String goodsName, Integer page) {
+        Page<Goods> goodsPage = new Page<>(page,10);
+        Page<Goods> resultPage = baseMapper.selectPage(goodsPage, new QueryWrapper<Goods>().like("goods_name",goodsName).orderByDesc("goods_id"));
+        return getGoodsResult(resultPage);
+    }
+
+    @Override
+    public Result getGoodsByCategory(Integer category,Integer page) {
+        Page<Goods> goodsPage = new Page<>(page,10);
+        Page<Goods> resultPage = baseMapper.selectPage(goodsPage, new QueryWrapper<Goods>().eq("goods_category",category).orderByDesc("goods_id"));
+        return getGoodsResult(resultPage);
     }
 }

@@ -37,6 +37,9 @@ public class Chat implements Serializable {
     @ApiModelProperty(value = "消息内容")
     private String message;
 
+    @ApiModelProperty(value = "是否已读(0是已读，1是未读)")
+    private Integer isRead;
+
     @ApiModelProperty(value = "逻辑删除")
     @TableLogic
     private Boolean deleted;
