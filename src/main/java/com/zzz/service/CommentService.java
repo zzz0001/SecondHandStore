@@ -18,4 +18,6 @@ public interface CommentService extends IService<Comment> {
     Result saveComment(CommentVO commentVO);
 
     Result removeComment(Long commentId);
+
+    Result getByGoodsId(Long goodsId, Integer page);
 }

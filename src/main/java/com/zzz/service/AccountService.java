@@ -22,6 +22,8 @@ public interface AccountService extends IService<Account> {
 
     boolean isLock(HttpServletRequest request);
 
+    boolean isLock(Long studentId);
+
     Result addMoney(Long studentId, Double money,String password);
 
     Result reduceMoney(Long studentId, Double money,String password);

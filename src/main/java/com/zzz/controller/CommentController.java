@@ -2,7 +2,6 @@ package com.zzz.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Comment;
 import com.zzz.pojo.entity.Image;
@@ -42,13 +41,11 @@ public class CommentController {
     }
 
     @RequiresAuthentication
-    @GetMapping("/comment/page")
-    public Result page(@RequestParam Long goodsId,
-                       @RequestParam Integer page) {
-        Page<Comment> commentPage = new Page<>(page, 10);
-        QueryWrapper<Comment> wrapper = new QueryWrapper<Comment>().eq("goods_id",goodsId);
-        Page<Comment> comments = commentService.page(commentPage, wrapper);
-        return Result.success(comments);
+    @GetMapping("/comment/page/{goodsId}/{page}")
+    public Result page(@PathVariable Long goodsId,
+                       @PathVariable Integer page) {
+        Result result = commentService.getByGoodsId(goodsId,page);
+        return result;
     }
 
     @RequiresAuthentication

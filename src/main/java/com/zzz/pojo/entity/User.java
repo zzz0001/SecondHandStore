@@ -71,6 +71,9 @@ public class User implements Serializable {
     @ApiModelProperty(value = "账号状态（0正常,1被锁定,2开通账户,3开通店铺）")
     private Integer status;
 
+    @ApiModelProperty(value = "账号锁定前的账号状态")
+    private Integer lastStatus;
+
     @ApiModelProperty(value = "逻辑删除")
     @TableLogic
     private Boolean deleted;

@@ -4,8 +4,6 @@ package com.zzz.controller;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.crypto.SecureUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.exception.ExceptionEnum;
@@ -55,15 +53,11 @@ public class UserController {
         return Result.success(users);
     }
 
+    @RequiresAuthentication
     @GetMapping("/user/page/{page}")
     public Result UserPage(@PathVariable Integer page) {
-        Page<User> userPage = new Page<>(page, 10);
-        Page<User> users = userService.page(userPage, new QueryWrapper<User>().orderByDesc("student_id"));
-        List<User> userList = users.getRecords();
-        userList.forEach(user -> {
-            user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
-        });
-        return Result.success(users);
+        Result result = userService.getUsersAndStore(page);
+        return result;
     }
 
     @RequiresAuthentication
@@ -75,6 +69,13 @@ public class UserController {
         }
         user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
         return Result.success(user);
+    }
+
+    @RequiresAuthentication
+    @GetMapping("/userByStudentId/{studentId}")
+    public Result getUserByStudentId(@PathVariable Long studentId) {
+        Result result = userService.getByStudentId(studentId);
+        return result;
     }
 
     @PostMapping("/user/register")

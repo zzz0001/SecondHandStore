@@ -1,13 +1,17 @@
 package com.zzz.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
 import com.zzz.mapper.CommentMapper;
 import com.zzz.mapper.OrdersMapper;
+import com.zzz.mapper.UserMapper;
 import com.zzz.pojo.entity.Comment;
 import com.zzz.pojo.entity.Image;
 import com.zzz.pojo.entity.Orders;
+import com.zzz.pojo.entity.User;
 import com.zzz.pojo.entity.vo.CommentVO;
 import com.zzz.service.CommentService;
 import com.zzz.service.ImageService;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -34,6 +39,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     @Resource
     private OrdersMapper ordersMapper;
+
+    @Resource
+    private UserMapper userMapper;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -72,5 +80,27 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         }
         return Result.success("评论删除失败");
 
+    }
+
+    @Override
+    public Result getByGoodsId(Long goodsId, Integer page) {
+        Page<Comment> commentPage = new Page<>(page, 10);
+        QueryWrapper<Comment> wrapper = new QueryWrapper<Comment>().eq("goods_id",goodsId).orderByDesc("comment_id");
+        Page<Comment> comments = baseMapper.selectPage(commentPage, wrapper);
+        List<Comment> commentList = comments.getRecords();
+        ArrayList<Object> resultComment = new ArrayList<>();
+        commentList.forEach(comment -> {
+            HashMap<String, Object> map = new HashMap<>();
+            Long studentId = comment.getStudentId();
+            User user = userMapper.selectById(studentId);
+            map.put("user",user);
+            map.put("comment",comment);
+            resultComment.add(map);
+        });
+        comments.setRecords(null);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("comment",resultComment);
+        result.put("page",comments);
+        return Result.success(result);
     }
 }

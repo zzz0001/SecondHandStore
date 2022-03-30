@@ -4,10 +4,8 @@ import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
-import com.zzz.mapper.GoodsMapper;
-import com.zzz.mapper.OrdersMapper;
-import com.zzz.mapper.StoreMapper;
-import com.zzz.mapper.UserMapper;
+import com.zzz.exception.BusinessException;
+import com.zzz.mapper.*;
 import com.zzz.pojo.entity.*;
 import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
@@ -51,6 +49,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private ExpenseMapper expenseMapper;
 
     @Resource
     private WebSocket webSocket;
@@ -132,8 +133,36 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     }
 
     @Override
+    public Result requestReturn(Long orderId) {
+        Orders orders = baseMapper.selectById(orderId);
+        orders.setOrderStatus(5);
+        int update = baseMapper.updateById(orders);
+        if (update == 1){
+            return Result.success("退货申请成功");
+        }
+        webSocket.sendMessage(orders.getStudentId().toString(),"1");
+        return Result.fail("退货申请失败");
+    }
+
+    @Override
+    public Result getBySingleStatus(Long studentId, Integer status) {
+        QueryWrapper<Orders> wrapper = null;
+        if (status <5 ){
+            wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("order_status", status).orderByDesc("create_time");
+        }else {
+            wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).ge("order_status", status).orderByDesc("create_time");
+        }
+        return getResultByStoreId(wrapper);
+    }
+
+    @Override
     public Result getByStatus(Long studentId,Integer status) {
-        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("order_status", status).orderByDesc("create_time");
+        QueryWrapper<Orders> wrapper = null;
+        if (status <4 ){
+            wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("order_status", status).orderByDesc("create_time");
+        }else {
+            wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).ge("order_status", status).orderByDesc("create_time");
+        }
         return getResultByOrder(wrapper);
     }
 
@@ -149,6 +178,11 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         Integer goodsInventory = goods.getGoodsInventory();
         if (goodsInventory < order.getGoodsNum()) {
             return Result.fail("商品库存不足");
+        }
+        Long sellerId = goods.getStudentId();
+        boolean lock = accountService.isLock(sellerId);
+        if (lock){
+            throw new BusinessException("商家账户被锁定，不可购买该店铺商品");
         }
         Long studentId = order.getStudentId();
         Account account = accountService.getById(studentId);
@@ -166,7 +200,14 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         order.setOrderDate(LocalDateTime.now());
         int i = baseMapper.updateById(order);
         if (i == 1 && update == 1) {
-            return Result.success("付款成功",goods.getStudentId());
+            Expense expense = new Expense();
+            expense.setCost(price);
+            expense.setStatus(0);
+            expense.setStudentId(studentId);
+            expense.setReceiveId(sellerId);
+            expense.setOrderId(orderId);
+            expenseMapper.insert(expense);
+            return Result.success("付款成功", sellerId);
         }
         return Result.fail("付款失败");
     }
@@ -183,6 +224,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             if (payment.getCode() != 200){
                 String message = "订单号："+ orderId + " 支付失败, 原因：" + payment.getMessage();
                 result.add(message);
+            } else {
+                Orders orders = baseMapper.selectById(orderId);
+                webSocket.sendMessage(orders.getStudentId().toString(),"1");
             }
         });
         return Result.success(result);
@@ -216,6 +260,13 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         order.setReceiveDate(LocalDateTime.now());
         int i = baseMapper.updateById(order);
         if (i == 1) {
+            Expense expense = new Expense();
+            expense.setCost(price);
+            expense.setStatus(2);
+            expense.setStudentId(studentId);
+            expense.setReceiveId(order.getStudentId());
+            expense.setOrderId(orderId);
+            expenseMapper.insert(expense);
             return Result.success("收货成功");
         }
         return Result.fail("收货失败");
@@ -233,7 +284,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         accountService.transfer(sell, buy, price);
         log.info("商家{} 向买家{} 转账 {}", sell, buy, price);
         // 将订单状态改为已退货
-        order.setOrderStatus(5);
+        order.setOrderStatus(6);
         order.setReturnDate(LocalDateTime.now());
         Long goodsId = order.getGoodsId();
         Goods goods = goodsMapper.selectById(goodsId);
@@ -241,6 +292,20 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         int update = goodsMapper.updateById(goods);
         int b = baseMapper.updateById(order);
         if (b == 1 && update == 1) {
+            Expense expense = new Expense();
+            expense.setCost(price);
+            expense.setStatus(0);
+            expense.setStudentId(sell);
+            expense.setReceiveId(buy);
+            expense.setOrderId(orderId);
+            expenseMapper.insert(expense);
+            Expense expense2 = new Expense();
+            expense2.setCost(price);
+            expense2.setStatus(2);
+            expense2.setStudentId(buy);
+            expense2.setReceiveId(sell);
+            expense2.setOrderId(orderId);
+            expenseMapper.insert(expense2);
             return Result.success("退货成功");
         }
         return Result.fail("退货失败");

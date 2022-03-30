@@ -4,10 +4,12 @@ package com.zzz.controller;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Orders;
+import com.zzz.pojo.entity.User;
 import com.zzz.pojo.entity.vo.OrderListVo;
 import com.zzz.pojo.entity.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.OrdersService;
+import com.zzz.service.UserService;
 import com.zzz.socket.WebSocket;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,9 @@ public class OrdersController {
 
     @Resource
     private AccountService accountService;
+
+    @Resource
+    private UserService userService;
 
     @Resource
     private JwtUtils jwtUtils;
@@ -89,6 +94,28 @@ public class OrdersController {
         return result;
     }
 
+    @RequiresAuthentication
+    @GetMapping("/orderListByStudentIdAndStatus/{studentId}/{status}")
+    public Result getOrderListByStudentIdAndStatus(@PathVariable Long studentId,
+                                                   @PathVariable Integer status) {
+        User user = userService.getById(studentId);
+        if (user == null){
+            return Result.fail("用户不存在");
+        }
+        Result result = orderService.getByStatus(studentId,status);
+        return result;
+    }
+
+
+    @RequiresAuthentication
+    @GetMapping("/orderBySingleStatus/{status}")
+    public Result orderBySingleStatus(@PathVariable Integer status,
+                                       HttpServletRequest request) {
+        Long studentId = jwtUtils.getStudentId(request);
+        Result result = orderService.getBySingleStatus(studentId,status);
+        return result;
+    }
+
     @ApiOperation(value = "付款接口")
     @RequiresAuthentication
     @PutMapping("/order")
@@ -122,6 +149,14 @@ public class OrdersController {
     public Result receive(@PathVariable Long orderId) {
        Result result = orderService.receive(orderId);
        return result;
+    }
+
+    @ApiOperation(value = "申请退货接口")
+    @RequiresAuthentication
+    @PutMapping("/order/requestReturn/{orderId}")
+    public Result requestReturn(@PathVariable Long orderId) {
+        Result result = orderService.requestReturn(orderId);
+        return result;
     }
 
     @ApiOperation(value = "退货接口")

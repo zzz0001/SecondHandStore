@@ -20,4 +20,8 @@ public interface UserService extends IService<User> {
     Result setPicture(MultipartFile file, HttpServletRequest request);
 
     Result updateStatus(Long userId);
+
+    Result getUsersAndStore(Integer page);
+
+    Result getByStudentId(Long studentId);
 }

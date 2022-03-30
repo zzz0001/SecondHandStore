@@ -1,9 +1,15 @@
 package com.zzz.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
+import com.zzz.mapper.AccountMapper;
+import com.zzz.mapper.StoreMapper;
 import com.zzz.mapper.UserMapper;
+import com.zzz.pojo.entity.Account;
+import com.zzz.pojo.entity.Store;
 import com.zzz.pojo.entity.User;
 import com.zzz.service.ImageService;
 import com.zzz.service.UserService;
@@ -14,6 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * <p>
@@ -28,6 +37,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private ImageService imageService;
+
+    @Resource
+    private StoreMapper storeMapper;
+
+    @Resource
+    private AccountMapper accountMapper;
 
     @Resource
     private JwtUtils jwtUtils;
@@ -62,8 +77,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = baseMapper.selectById(userId);
         Integer status = user.getStatus();
         if (status == 1){
-            user.setStatus(0);
-        }else{
+            user.setStatus(user.getLastStatus());
+        }else {
+            user.setLastStatus(user.getStatus());
             user.setStatus(1);
         }
         int i = baseMapper.updateById(user);
@@ -71,6 +87,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return Result.success("用户状态修改成功");
         }
         return Result.fail("用户状态修改失败");
+    }
+
+    @Override
+    public Result getUsersAndStore(Integer page) {
+        Page<User> userPage = new Page<>(page, 10);
+        Page<User> users = baseMapper.selectPage(userPage, new QueryWrapper<User>().orderByDesc("student_id"));
+        List<User> userList = users.getRecords();
+        ArrayList<Object> usersResult = new ArrayList<>();
+        userList.forEach(user -> {
+            Long studentId = user.getStudentId();
+            Store store = storeMapper.selectOne(new QueryWrapper<Store>().eq("student_id", studentId));
+            Account account = accountMapper.selectById(studentId);
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("user",user);
+            map.put("store",store);
+            map.put("account",account);
+            usersResult.add(map);
+        });
+        userPage.setRecords(null);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("data",usersResult);
+        result.put("page",userPage);
+        return Result.success(result);
+    }
+
+    @Override
+    public Result getByStudentId(Long studentId) {
+        User user = baseMapper.selectById(studentId);
+        if (user == null) {
+            return Result.fail("不存在该用户");
+        }
+        Store store = storeMapper.selectOne(new QueryWrapper<Store>().eq("student_id", studentId));
+        Account account = accountMapper.selectById(studentId);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("user",user);
+        result.put("store",store);
+        result.put("account",account);
+        return Result.success(result);
     }
 
 }

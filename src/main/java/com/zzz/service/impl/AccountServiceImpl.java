@@ -4,9 +4,11 @@ import cn.hutool.crypto.SecureUtil;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.exception.BusinessException;
+import com.zzz.mapper.ExpenseMapper;
 import com.zzz.mapper.UserMapper;
 import com.zzz.pojo.entity.Account;
 import com.zzz.mapper.AccountMapper;
+import com.zzz.pojo.entity.Expense;
 import com.zzz.pojo.entity.User;
 import com.zzz.service.AccountService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -35,6 +37,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     @Resource
     private JwtUtils jwtUtils;
 
+    @Resource
+    private ExpenseMapper expenseMapper;
+
     @Override
     public Result addMoney(Long studentId, Double money,String password) {
         Account account = baseMapper.selectById(Long.valueOf(studentId));
@@ -49,6 +54,11 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         int i = baseMapper.updateById(account);
         if (i==1){
             log.info("账号 {} 充值了 {} 元",studentId,money);
+            Expense expense = new Expense();
+            expense.setCost(money);
+            expense.setStatus(3);
+            expense.setStudentId(studentId);
+            expenseMapper.insert(expense);
             return Result.success("充值成功");
         }
         return Result.fail("充值失败");
@@ -58,15 +68,18 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     @Override
     public Result transfer(Long buyer, Long seller, Double money) {
         Account buy = baseMapper.selectById(buyer);
+        Account sell = baseMapper.selectById(seller);
         if(buy.getStatus() == 1){
             throw new BusinessException("账户被锁定，不允许付款操作");
+        }
+        if(sell.getStatus() == 1){
+            throw new BusinessException("商家账户被锁定，不可购买该店铺商品");
         }
         if(buy.getMoney()<money){
             log.info("{}账户余额不足",buyer);
             throw new BusinessException("账户余额不足，请先充值后付款");
         }
         buy.setMoney(buy.getMoney()-money);
-        Account sell = baseMapper.selectById(seller);
         sell.setMoney(sell.getMoney()+money);
         int i = baseMapper.updateById(buy);
         int i2 = baseMapper.updateById(sell);
@@ -105,6 +118,15 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     @Override
+    public boolean isLock(Long studentId) {
+        Account account = baseMapper.selectById(studentId);
+        if (account.getStatus() == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public Result reduceMoney(Long studentId, Double money,String password) {
         Account account = baseMapper.selectById(studentId);
         if (account.getStatus()==1){
@@ -121,11 +143,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         account.setMoney(money1-money);
         int update = baseMapper.updateById(account);
         if (update == 1){
-            log.warn("账号 {} 提现成功，金额：{}",studentId,money);
+            log.info("账号 {} 提现成功，金额：{}",studentId,money);
+            Expense expense = new Expense();
+            expense.setCost(money);
+            expense.setStatus(1);
+            expense.setStudentId(studentId);
+            expenseMapper.insert(expense);
             return Result.success("提现成功");
         }
         return Result.fail("提现失败");
     }
-
-
 }

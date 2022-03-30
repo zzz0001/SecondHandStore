@@ -45,7 +45,20 @@ public class JwtUtils {
                 .setExpiration(expireDate)
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
+    }
 
+    public String CreateToken(String userId) {
+        Date nowDate = new Date();
+        //过期时间，因为是毫秒为单位，所以过期时间需要乘1000
+        Date expireDate = new Date(nowDate.getTime() + expire * 1000);
+
+        return Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+                .setSubject(userId+"")
+                .setIssuedAt(nowDate)
+                .setExpiration(expireDate)
+                .signWith(SignatureAlgorithm.HS512, secret)
+                .compact();
     }
 
     public Claims getClaimByToken(String token) {

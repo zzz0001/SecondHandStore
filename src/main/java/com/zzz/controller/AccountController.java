@@ -84,13 +84,28 @@ public class AccountController {
         return result;
     }
 
+    @RequiresAuthentication
+    @PutMapping("/account/{studentId}")
+    public Result changeStatus(@PathVariable Long studentId){
+        Account account = accountService.getById(studentId);
+        Integer status = account.getStatus();
+        if (status == 1){
+            account.setStatus(0);
+        }else{
+            account.setStatus(1);
+        }
+        boolean update = accountService.updateById(account);
+        if (update) {
+            return Result.success("账户状态修改成功");
+        }
+        return Result.fail("账户状态修改失败");
+    }
 
     @RequiresAuthentication
     @DeleteMapping("/account/{studentId}")
     public Result remove(@PathVariable Long studentId){
-        Account account = accountService.getById(studentId);
-        Integer status = account.getStatus();
-        if (status==1){
+        boolean lock = accountService.isLock(studentId);
+        if (lock){
             return Result.fail("账户被锁定，不允许注销账户");
         }
         boolean b = accountService.removeById(studentId);
