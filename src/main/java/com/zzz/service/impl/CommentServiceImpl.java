@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
+import com.zzz.exception.BusinessException;
 import com.zzz.mapper.CommentMapper;
 import com.zzz.mapper.OrdersMapper;
 import com.zzz.mapper.UserMapper;
@@ -78,7 +79,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         if (b==1) {
             return Result.success("评论删除成功");
         }
-        return Result.success("评论删除失败");
+        throw new BusinessException("评论删除失败");
 
     }
 
@@ -93,8 +94,10 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             HashMap<String, Object> map = new HashMap<>();
             Long studentId = comment.getStudentId();
             User user = userMapper.selectById(studentId);
+            List<String> images = imageService.getImagesByCommentId(comment.getCommentId());
             map.put("user",user);
             map.put("comment",comment);
+            map.put("images",images);
             resultComment.add(map);
         });
         comments.setRecords(null);

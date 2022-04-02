@@ -1,14 +1,17 @@
 package com.zzz.controller;
 
 
+import cn.hutool.crypto.SecureUtil;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Account;
 import com.zzz.pojo.entity.vo.AccountVo;
+import com.zzz.pojo.entity.vo.PasswordVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -38,12 +41,8 @@ public class AccountController {
     @RequiresAuthentication
     @PostMapping("/account")
     public Result account(@RequestBody Account account){
-        boolean b = accountService.saveAccount(account);
-        if(b){
-            log.info("学号{}---开通了账户",account.getStudentId());
-            return Result.success("账户开通成功");
-        }
-        return Result.fail("账户开通失败");
+        Result result = accountService.saveAccount(account);
+        return result;
     }
 
     @RequiresAuthentication
@@ -84,6 +83,7 @@ public class AccountController {
         return result;
     }
 
+    @RequiresRoles("root")
     @RequiresAuthentication
     @PutMapping("/account/{studentId}")
     public Result changeStatus(@PathVariable Long studentId){
@@ -99,6 +99,22 @@ public class AccountController {
             return Result.success("账户状态修改成功");
         }
         return Result.fail("账户状态修改失败");
+    }
+
+    @RequiresAuthentication
+    @PutMapping("/account/password")
+    public Result ChangePassword(@RequestBody PasswordVo passwordVo){
+        Long studentId = passwordVo.getStudentId();
+        Account account = accountService.getById(studentId);
+        if (!account.getPassword().equals(SecureUtil.md5(passwordVo.getOldPassword()))){
+            return Result.fail("原密码错误");
+        }
+        account.setPassword(SecureUtil.md5(passwordVo.getPassword()));
+        boolean update = accountService.updateById(account);
+        if(update){
+            return Result.success("支付密码修改成功");
+        }
+        return Result.fail("支付密码修改失败");
     }
 
     @RequiresAuthentication

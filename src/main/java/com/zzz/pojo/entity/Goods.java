@@ -46,6 +46,10 @@ public class Goods implements Serializable {
     @ApiModelProperty(value = "商品库存")
     private Integer goodsInventory;
 
+    @ApiModelProperty(value = "版本号")
+    @Version
+    private Integer version;
+
     @ApiModelProperty(value = "逻辑删除")
     @TableLogic
     private Boolean deleted;

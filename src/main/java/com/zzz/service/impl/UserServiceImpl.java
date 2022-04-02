@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
+import com.zzz.exception.BusinessException;
 import com.zzz.mapper.AccountMapper;
 import com.zzz.mapper.StoreMapper;
 import com.zzz.mapper.UserMapper;
@@ -69,7 +70,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (update == 1){
             return Result.success("头像上传成功");
         }
-        return Result.fail("头像上传失败");
+        throw new BusinessException("头像上传失败");
     }
 
     @Override

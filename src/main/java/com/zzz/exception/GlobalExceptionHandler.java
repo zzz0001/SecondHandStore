@@ -47,6 +47,13 @@ public class GlobalExceptionHandler {
         return Result.fail(objectError.getDefaultMessage());
     }
 
+//    @ResponseStatus(HttpStatus.BAD_REQUEST)
+//    @ExceptionHandler(value = RetryException.class)
+//    public Result handler(RetryException e) throws IOException {
+//        log.error("下单异常，并且重试失败",e);
+//        return Result.fail(e.getMessage());
+//    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = RuntimeException.class)
     public Result handler(RuntimeException e) throws IOException {

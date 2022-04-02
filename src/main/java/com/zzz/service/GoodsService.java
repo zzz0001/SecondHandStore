@@ -1,8 +1,9 @@
 package com.zzz.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Goods;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.zzz.pojo.entity.GoodsDto;
 import com.zzz.pojo.entity.vo.GoodsVO;
 
 /**
@@ -30,4 +31,5 @@ public interface GoodsService extends IService<Goods> {
     Result getGoodsByName(String goodsName, Integer page);
 
     Result getGoodsByCategory(Integer category,Integer page);
+
 }

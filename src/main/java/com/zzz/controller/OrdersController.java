@@ -119,12 +119,18 @@ public class OrdersController {
     @ApiOperation(value = "付款接口")
     @RequiresAuthentication
     @PutMapping("/order")
-    public Result transfer(@RequestBody OrderVo orderVo) {
-        Result result = orderService.payment(orderVo);
-        if (result.getCode() == 200){
-            webSocket.sendMessage(result.getData().toString(),"1");
+    public Result transfer(@RequestBody OrderVo orderVo){
+
+        Result result = null;
+        try {
+            result = orderService.payment(orderVo);
+            if (result.getCode() == 200){
+                webSocket.sendMessage(result.getData().toString(),"1");
+            }
+            return result;
+        } catch (Exception e) {
+            return Result.fail("商品库存不足,购买失败");
         }
-        return result;
     }
 
     @ApiOperation(value = "购物车付款接口")

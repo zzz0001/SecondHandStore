@@ -18,7 +18,7 @@ public interface AccountService extends IService<Account> {
 
     Result transfer(Long buyer, Long seller, Double money);
 
-    boolean saveAccount(Account account);
+    Result saveAccount(Account account);
 
     boolean isLock(HttpServletRequest request);
 

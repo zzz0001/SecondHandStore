@@ -53,6 +53,7 @@ public class UserController {
         return Result.success(users);
     }
 
+    @RequiresRoles("root")
     @RequiresAuthentication
     @GetMapping("/user/page/{page}")
     public Result UserPage(@PathVariable Integer page) {
@@ -148,6 +149,7 @@ public class UserController {
         return Result.success("信息修改失败");
     }
 
+    @RequiresRoles("root")
     @ApiOperation("用户状态修改接口")
     @RequiresAuthentication
     @PutMapping("/user/status/{userId}")

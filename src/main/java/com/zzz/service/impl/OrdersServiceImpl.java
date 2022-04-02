@@ -14,6 +14,9 @@ import com.zzz.service.ImageService;
 import com.zzz.service.OrdersService;
 import com.zzz.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.RetryException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -168,8 +171,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
 
 
     @Transactional(rollbackFor = Exception.class)
+    @Retryable(value = RetryException.class, maxAttempts = 5, backoff = @Backoff(delay = 100L, multiplier = 2))
     @Override
-    public Result payment(OrderVo orderVo) {
+    public Result payment(OrderVo orderVo){
         String password = orderVo.getPassword();
         Long orderId = orderVo.getOrderId();
         Orders order = baseMapper.selectById(orderId);
@@ -194,6 +198,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         log.info("账户:{} 支付了 {}", studentId, price);
         goods.setGoodsInventory(goodsInventory - order.getGoodsNum());
         int update = goodsMapper.updateById(goods);
+        if (update != 1){
+            throw new RetryException("商品库存更新失败");
+        }
         log.info("商品:{} 销售了 {}", goodsId, order.getGoodsNum());
         // 将订单状态改为已付款
         order.setOrderStatus(1);
@@ -209,7 +216,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             expenseMapper.insert(expense);
             return Result.success("付款成功", sellerId);
         }
-        return Result.fail("付款失败");
+        throw new BusinessException("付款失败");
     }
 
     @Override
@@ -220,14 +227,31 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             OrderVo orderVo = new OrderVo();
             orderVo.setOrderId(orderId);
             orderVo.setPassword(orderListVo.getPassword());
-            Result payment = payment(orderVo);
-            if (payment.getCode() != 200){
-                String message = "订单号："+ orderId + " 支付失败, 原因：" + payment.getMessage();
+            Orders orders = null;
+            Result payment = null;
+            try {
+                payment = payment(orderVo);
+                orders = baseMapper.selectById(orderId);
+                if (payment.getCode() != 200){
+                    Goods goods = goodsMapper.selectById(orders.getGoodsId());
+                    String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + payment.getMessage();
+                    result.add(message);
+                } else {
+                    webSocket.sendMessage(orders.getStudentId().toString(),"1");
+                }
+            } catch (Exception e) {
+                Goods goods = goodsMapper.selectById(orders.getGoodsId());
+                String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + e.getMessage();
                 result.add(message);
-            } else {
-                Orders orders = baseMapper.selectById(orderId);
-                webSocket.sendMessage(orders.getStudentId().toString(),"1");
             }
+//            Result payment = payment(orderVo);
+//            if (payment.getCode() != 200){
+//                String message = "订单号："+ orderId + " 支付失败, 原因：" + payment.getMessage();
+//                result.add(message);
+//            } else {
+//                Orders orders = baseMapper.selectById(orderId);
+//                webSocket.sendMessage(orders.getStudentId().toString(),"1");
+//            }
         });
         return Result.success(result);
     }
@@ -269,7 +293,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             expenseMapper.insert(expense);
             return Result.success("收货成功");
         }
-        return Result.fail("收货失败");
+        throw new BusinessException("收货失败");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -308,7 +332,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             expenseMapper.insert(expense2);
             return Result.success("退货成功");
         }
-        return Result.fail("退货失败");
+        throw new BusinessException("退货失败");
     }
 
 

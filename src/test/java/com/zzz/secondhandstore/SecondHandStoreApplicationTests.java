@@ -1,7 +1,9 @@
 package com.zzz.secondhandstore;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.zzz.pojo.entity.Goods;
 import com.zzz.pojo.entity.User;
+import com.zzz.service.GoodsService;
 import com.zzz.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +25,24 @@ class SecondHandStoreApplicationTests {
 
     @Resource
     private RedisTemplate redisTemplate;
+
+    @Resource
+    private GoodsService goodsService;
+
+
+    @Test
+    void testVersion(){
+        Goods goods = goodsService.getById(2);
+        goods.setGoodsInventory(5);
+
+        Goods goods1 = goodsService.getById(2);
+        goods1.setGoodsInventory(9);
+        goodsService.updateById(goods1);
+        System.out.println("第二个更新成功");
+
+        goodsService.updateById(goods);
+        System.out.println("更新成功");
+    }
 
 
     @Test

@@ -5,13 +5,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
+import com.zzz.exception.BusinessException;
 import com.zzz.mapper.GoodsMapper;
 import com.zzz.pojo.entity.Goods;
+import com.zzz.pojo.entity.GoodsDto;
 import com.zzz.pojo.entity.Image;
+import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.vo.GoodsVO;
 import com.zzz.service.GoodsService;
 import com.zzz.service.ImageService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.RetryException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +70,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         if (flag == 1) {
             return Result.success("操作成功");
         }
-        return Result.fail("操作失败");
+        throw new BusinessException("操作失败");
     }
 
     @Override
@@ -92,7 +98,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         if (delete == 1) {
             return Result.success("商品下架成功");
         }
-        return Result.fail("商品下架失败");
+        throw new BusinessException("商品下架失败");
     }
 
     @Override
@@ -168,4 +174,5 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         Page<Goods> resultPage = baseMapper.selectPage(goodsPage, new QueryWrapper<Goods>().eq("goods_category",category).orderByDesc("goods_id"));
         return getGoodsResult(resultPage);
     }
+
 }

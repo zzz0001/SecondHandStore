@@ -2,6 +2,7 @@ package com.zzz.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zzz.Util.Result;
+import com.zzz.exception.BusinessException;
 import com.zzz.mapper.ContactMapper;
 import com.zzz.pojo.entity.Chat;
 import com.zzz.mapper.ChatMapper;
@@ -57,7 +58,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         if (insert == 1) {
             return Result.success("消息发送成功");
         }
-        return Result.fail("消息发送失败");
+        throw new BusinessException("消息发送失败");
     }
 
     @Override

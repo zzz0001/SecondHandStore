@@ -86,12 +86,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if (i==1 && i2==1){
             return Result.success("转账成功");
         }
-        return Result.fail("转账失败");
+        throw new BusinessException("转账失败");
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean saveAccount(Account account) {
+    public Result saveAccount(Account account) {
         account.setCredit(1);
         account.setMoney(0D);
         account.setStatus(0);
@@ -102,9 +102,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         user.setStatus(2);
         int i2 = userMapper.updateById(user);
         if (i == 1 && i2 == 1){
-            return true;
+            log.info("学号{}---开通了账户",account.getStudentId());
+            return Result.success("账户开通成功");
         }
-        return false;
+        throw new BusinessException("保存错误");
     }
 
     @Override
