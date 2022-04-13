@@ -1,6 +1,9 @@
 package com.zzz.secondhandstore;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.zzz.mapper.CommentMapper;
+import com.zzz.pojo.entity.Comment;
 import com.zzz.pojo.entity.Goods;
 import com.zzz.pojo.entity.User;
 import com.zzz.service.GoodsService;
@@ -28,6 +31,9 @@ class SecondHandStoreApplicationTests {
 
     @Resource
     private GoodsService goodsService;
+
+    @Resource
+    private CommentMapper commentMapper;
 
 
     @Test
@@ -61,7 +67,11 @@ class SecondHandStoreApplicationTests {
 
     @Test
     void test11(){
-        redisTemplate.opsForValue().set("ABC","AAA");
+        System.out.println("开始："+ System.currentTimeMillis());
+
+        redisTemplate.opsForValue().set("name","AAA");
+
+        System.out.println("结束："+ System.currentTimeMillis());
     }
 
     @Test
@@ -99,5 +109,16 @@ class SecondHandStoreApplicationTests {
     void test5(){
         Boolean hasKey = redisTemplate.hasKey("user");
         System.out.println(hasKey);
+    }
+
+
+    @Test
+    void test6(){
+        QueryWrapper<Comment> wrapper = new QueryWrapper<Comment>().eq("goods_id", 1000);
+        List<Comment> comments = commentMapper.selectList(wrapper);
+        comments.forEach( comment -> {
+            System.out.println("+++++++++++++");
+        });
+        System.out.println(comments);
     }
 }

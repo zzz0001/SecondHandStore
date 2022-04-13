@@ -6,6 +6,7 @@ import com.zzz.pojo.entity.Chat;
 import com.zzz.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 /**
  * @author zzz
@@ -85,7 +86,23 @@ public class WebSocket {
                 if(webSocket != null){
                     webSocket.session.getBasicRemote().sendText(Integer.valueOf(1).toString());
                 }else {
-                    redisTemplate.opsForValue().increment("chatList"+toName);
+                    ExecutorService executor = Executors.newSingleThreadExecutor();
+                    //使用Callable接口作为构造参数
+                    FutureTask<Boolean> future = new FutureTask<>(() -> {
+                        //真正的任务在这里执行，这里的返回值类型为String，可以为任意类型
+                        redisTemplate.opsForValue().increment("chatList"+toName);
+                        return null;
+                    });
+                    try {
+                        executor.execute(future);
+                        //取得结果，同时设置超时执行时间为1秒。同样可以用future.get()，不设置执行超时时间取得结果
+                        future.get(1000, TimeUnit.MILLISECONDS);
+                    } catch (Exception e) {
+                        log.error("redis连接失败");
+                        future.cancel(true);
+                    } finally {
+                        executor.shutdown();
+                    }
                 }
                 chat.setIsRead(1);
             }
@@ -100,17 +117,33 @@ public class WebSocket {
         log.error("WebSocket发生错误：" + throwable);
     }
 
-    public void sendMessage(String studentId,String message) {
+    public void sendMessage(String studentId,String message) throws IOException {
         // 可以修改为对某个客户端发消息
         try {
             WebSocket socket = clients.get("order"+studentId);
             if (socket != null){
                 socket.session.getBasicRemote().sendText(message);
             }else {
-                redisTemplate.opsForValue().increment("order"+studentId);
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                //使用Callable接口作为构造参数
+                FutureTask<Boolean> future = new FutureTask<>(() -> {
+                    //真正的任务在这里执行，这里的返回值类型为String，可以为任意类型
+                    redisTemplate.opsForValue().increment("order"+studentId);
+                    return null;
+                });
+                try {
+                    executor.execute(future);
+                    //取得结果，同时设置超时执行时间为1秒。同样可以用future.get()，不设置执行超时时间取得结果
+                    future.get(1000, TimeUnit.MILLISECONDS);
+                } catch (Exception e) {
+                    future.cancel(true);
+                    throw e;
+                } finally {
+                    executor.shutdown();
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RedisConnectionFailureException("redis连接失败");
         }
     }
 

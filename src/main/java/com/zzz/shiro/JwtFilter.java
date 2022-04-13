@@ -49,7 +49,7 @@ public class JwtFilter extends AuthenticatingFilter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String token = request.getHeader("Authorization");
 
-        log.info("token ------- {}",token);
+//        log.info("token ------- {}",token);
 
         if(StringUtils.isEmpty(token)) {
             return true;

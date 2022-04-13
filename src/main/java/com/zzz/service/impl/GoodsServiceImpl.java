@@ -7,11 +7,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.Result;
 import com.zzz.exception.BusinessException;
 import com.zzz.mapper.GoodsMapper;
+import com.zzz.mapper.OrdersMapper;
 import com.zzz.pojo.entity.Goods;
-import com.zzz.pojo.entity.GoodsDto;
 import com.zzz.pojo.entity.Image;
 import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.vo.GoodsVO;
+import com.zzz.service.CommentService;
 import com.zzz.service.GoodsService;
 import com.zzz.service.ImageService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
     @Resource
     private ImageService imageService;
+
+    @Resource
+    private OrdersMapper ordersMapper;
+
+    @Resource
+    private CommentService commentService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -93,14 +100,22 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result removeGoods(Long goodsId) {
-        int delete = baseMapper.deleteById(goodsId);
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("goods_id", goodsId).eq("order_status", 1);
+        Orders orders = ordersMapper.selectOne(wrapper);
+        if (orders != null){
+            return Result.fail("该商品存在未完结的订单，不允许下架");
+        }
         imageService.removeByGoodsId(goodsId);
+        commentService.removeCommentsByGoodsId(goodsId);
+        int delete = baseMapper.deleteById(goodsId);
+
         if (delete == 1) {
             return Result.success("商品下架成功");
         }
         throw new BusinessException("商品下架失败");
     }
 
+    @Retryable(value = RetryException.class, maxAttempts = 3, backoff = @Backoff(delay = 100L, multiplier = 2))
     @Override
     public Result addInventory(Long goodsId, Integer inventory) {
         Goods goods = baseMapper.selectById(goodsId);
@@ -110,10 +125,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
             goods.setGoodsInventory(goods.getGoodsInventory() + inventory);
         }
         int update = baseMapper.updateById(goods);
-        if (update == 1) {
-            return Result.success("增加库存成功");
+        if (update != 1) {
+            throw new RetryException("库存修改失败");
         }
-        return Result.fail("增加库存失败");
+        return Result.success("库存修改成功");
     }
 
     @Override

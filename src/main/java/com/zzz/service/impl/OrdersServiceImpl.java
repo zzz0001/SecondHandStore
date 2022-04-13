@@ -14,6 +14,7 @@ import com.zzz.service.ImageService;
 import com.zzz.service.OrdersService;
 import com.zzz.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.RetryException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -143,7 +145,11 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         if (update == 1){
             return Result.success("退货申请成功");
         }
-        webSocket.sendMessage(orders.getStudentId().toString(),"1");
+        try {
+            webSocket.sendMessage(orders.getStudentId().toString(),"1");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return Result.fail("退货申请失败");
     }
 
@@ -156,6 +162,23 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).ge("order_status", status).orderByDesc("create_time");
         }
         return getResultByStoreId(wrapper);
+    }
+
+    @Override
+    public Result getByOrderId(Long orderId) {
+        Orders order = baseMapper.selectById(orderId);
+        if (order == null) {
+            return Result.fail("订单号不存在");
+        }
+        HashMap<String, Object> map = new HashMap<>();
+        List<String> images = imageService.getImagesByGoodsId(order.getGoodsId());
+        Goods goods = goodsMapper.selectById(order.getGoodsId());
+        Store store = storeMapper.selectById(order.getStoreId());
+        map.put("order",order);
+        map.put("images",images);
+        map.put("goods",goods);
+        map.put("store",store);
+        return Result.success(map);
     }
 
     @Override
@@ -239,19 +262,13 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
                 } else {
                     webSocket.sendMessage(orders.getStudentId().toString(),"1");
                 }
+            } catch (RedisConnectionFailureException e){
+                log.error("redis连接连接错误");
             } catch (Exception e) {
                 Goods goods = goodsMapper.selectById(orders.getGoodsId());
                 String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + e.getMessage();
                 result.add(message);
             }
-//            Result payment = payment(orderVo);
-//            if (payment.getCode() != 200){
-//                String message = "订单号："+ orderId + " 支付失败, 原因：" + payment.getMessage();
-//                result.add(message);
-//            } else {
-//                Orders orders = baseMapper.selectById(orderId);
-//                webSocket.sendMessage(orders.getStudentId().toString(),"1");
-//            }
         });
         return Result.success(result);
     }

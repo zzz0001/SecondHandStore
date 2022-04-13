@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Date;
+import java.util.concurrent.*;
 
 /**
  * @author zzz
@@ -56,5 +57,35 @@ public class TestDemo {
     @Test
     void test4(){
 
+        Boolean result = false;
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        //使用Callable接口作为构造参数
+        FutureTask<Boolean> future = new FutureTask<>(() -> {
+            //真正的任务在这里执行，这里的返回值类型为String，可以为任意类型
+                System.out.println("执行中...");
+                return true;
+        });
+        //在这里可以做别的任何事情
+        try {
+            executor.execute(future);
+            result = future.get(100, TimeUnit.MILLISECONDS); //取得结果，同时设置超时执行时间为5秒。同样可以用future.get()，不设置执行超时时间取得结果
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            future.cancel(true);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            future.cancel(true);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            future.cancel(true);
+        } finally {
+            executor.shutdown();
+        }
+
+        System.out.println(result);
     }
+
+
+
 }

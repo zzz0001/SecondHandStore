@@ -106,4 +106,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         result.put("page",comments);
         return Result.success(result);
     }
+
+    @Override
+    public void removeCommentsByGoodsId(Long goodsId) {
+        QueryWrapper<Comment> wrapper = new QueryWrapper<Comment>().eq("goods_id", goodsId);
+        List<Comment> comments = baseMapper.selectList(wrapper);
+        comments.forEach( comment -> {
+            imageService.removeByCommentId(comment.getCommentId());
+            baseMapper.deleteById(comment.getCommentId());
+        });
+    }
 }

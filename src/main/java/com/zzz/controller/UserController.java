@@ -118,6 +118,7 @@ public class UserController {
             log.info("用户被锁定，无法登录--------{}",user);
             return Result.fail("账号被锁定，无法登录");
         }
+        log.info("用户登录成功---------{}",userVo);
         String token = jwtUtils.CreateToken(userVo.getStudentId());
         response.setHeader("Authorization", token);
         response.setHeader("Access-control-Expose-Headers", "Authorization");

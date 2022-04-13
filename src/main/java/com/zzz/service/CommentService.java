@@ -20,4 +20,6 @@ public interface CommentService extends IService<Comment> {
     Result removeComment(Long commentId);
 
     Result getByGoodsId(Long goodsId, Integer page);
+
+    void removeCommentsByGoodsId(Long goodsId);
 }

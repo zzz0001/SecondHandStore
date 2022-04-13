@@ -49,6 +49,9 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     @Override
     public Result getByGoodsId(Long goodsId) {
         Goods goods = goodsMapper.selectById(goodsId);
+        if (goods == null){
+            return Result.fail("没有找到该店铺");
+        }
         Long studentId = goods.getStudentId();
         QueryWrapper<Store> queryWrapper = new QueryWrapper<Store>().eq("student_id", studentId);
         Store store = baseMapper.selectOne(queryWrapper);

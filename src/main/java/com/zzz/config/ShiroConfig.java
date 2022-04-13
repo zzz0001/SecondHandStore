@@ -53,7 +53,7 @@ public class ShiroConfig {
         return defaultAdvisorAutoProxyCreator;
     }
 
-    @Bean
+//    @Bean
     public DefaultWebSecurityManager securityManager(UserRealm userRealm,
                                                      SessionManager sessionManager,
                                                      RedisCacheManager redisCacheManager) {
@@ -72,7 +72,7 @@ public class ShiroConfig {
     }
 
     // 使用默认的SessionManager
-//    @Bean
+    @Bean
     public DefaultWebSecurityManager securityManager(UserRealm userRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager(userRealm);
         return securityManager;

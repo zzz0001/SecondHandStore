@@ -37,4 +37,6 @@ public interface OrdersService extends IService<Orders> {
     Result requestReturn(Long orderId);
 
     Result getBySingleStatus(Long studentId, Integer status);
+
+    Result getByOrderId(Long orderId);
 }

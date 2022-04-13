@@ -14,6 +14,7 @@ import com.zzz.socket.WebSocket;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -62,11 +63,8 @@ public class OrdersController {
     @RequiresAuthentication
     @GetMapping("/order/{orderId}")
     public Result getOrder(@PathVariable Long orderId) {
-        Orders order = orderService.getById(orderId);
-        if (order == null) {
-            return Result.fail("订单号不存在");
-        }
-        return Result.success(order);
+        Result result = orderService.getByOrderId(orderId);
+        return result;
     }
 
     @RequiresAuthentication
@@ -128,7 +126,11 @@ public class OrdersController {
                 webSocket.sendMessage(result.getData().toString(),"1");
             }
             return result;
+        } catch (RedisConnectionFailureException e){
+            log.error("Redis连接失败");
+            return result;
         } catch (Exception e) {
+            log.error("库存异常");
             return Result.fail("商品库存不足,购买失败");
         }
     }
