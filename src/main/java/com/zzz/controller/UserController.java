@@ -68,7 +68,11 @@ public class UserController {
         if (user == null) {
             return Result.fail("不存在该用户");
         }
-        user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
+        if (user.getBirthDay() == null){
+            user.setAge(0);
+        }else{
+            user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
+        }
         return Result.success(user);
     }
 

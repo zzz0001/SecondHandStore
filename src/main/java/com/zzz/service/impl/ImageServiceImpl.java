@@ -32,7 +32,7 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> implements
         }
         String originalFilename = file.getOriginalFilename();
         String FileName = System.currentTimeMillis() + originalFilename.substring(originalFilename.lastIndexOf("."));
-        String FilePath = "D:/IDEA workspace/secondhandstorevue/public/user/" + FileName;
+        String FilePath = "C:/Users/Administrator/IDEA workspace/secondhandstorevue/public/user/" + FileName;
         File DestFile = new File(FilePath);
         if (!DestFile.getParentFile().exists()) {
             boolean res = DestFile.getParentFile().mkdirs();
@@ -48,7 +48,7 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> implements
 
     @Override
     public Boolean removeFile(String path) {
-        String newPath = "D:/IDEA workspace/secondhandstorevue/public" + path;
+        String newPath = "C:/Users/Administrator/IDEA workspace/secondhandstorevue/public" + path;
         boolean delete = new File(newPath).delete();
         QueryWrapper<Image> wrapper = new QueryWrapper<Image>().eq("image_path", path);
         int i = baseMapper.delete(wrapper);

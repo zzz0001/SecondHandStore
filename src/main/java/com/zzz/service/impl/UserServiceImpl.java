@@ -55,11 +55,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = baseMapper.selectById(studentId);
         // 若头像不是初始头像，则删除原始头像
         if (!user.getPicture().equals("/user/123abc.jpeg")){
-            String picture = "D:/IDEA workspace/secondhandstorevue/public"+user.getPicture();
+            String picture = "C:/Users/Administrator/IDEA workspace/secondhandstorevue/public"+user.getPicture();
             boolean delete = new File(picture).delete();
-            if(!delete){
-                return Result.fail("头像修改失败");
-            }
         }
         String path = imageService.uploadFile(file);
         if (path == null){

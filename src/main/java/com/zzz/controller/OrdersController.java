@@ -3,6 +3,7 @@ package com.zzz.controller;
 
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
+import com.zzz.exception.BusinessException;
 import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.User;
 import com.zzz.pojo.entity.vo.OrderListVo;
@@ -129,6 +130,8 @@ public class OrdersController {
         } catch (RedisConnectionFailureException e){
             log.error("Redis连接失败");
             return result;
+        } catch (BusinessException e){
+            return Result.fail(e.getMessage());
         } catch (Exception e) {
             log.error("库存异常");
             return Result.fail("商品库存不足,购买失败");

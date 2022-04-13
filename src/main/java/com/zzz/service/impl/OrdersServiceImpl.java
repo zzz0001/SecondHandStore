@@ -155,11 +155,13 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
 
     @Override
     public Result getBySingleStatus(Long studentId, Integer status) {
+        Store store = storeMapper.selectOne(new QueryWrapper<Store>().eq("student_id", studentId));
+        Long storeId = store.getStoreId();
         QueryWrapper<Orders> wrapper = null;
         if (status <5 ){
-            wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("order_status", status).orderByDesc("create_time");
+            wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).eq("order_status", status).orderByDesc("create_time");
         }else {
-            wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).ge("order_status", status).orderByDesc("create_time");
+            wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).ge("order_status", status).orderByDesc("create_time");
         }
         return getResultByStoreId(wrapper);
     }
@@ -217,7 +219,11 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             return Result.fail("密码错误");
         }
         Double price = order.getTotalPrice();
-        accountService.transfer(studentId, -999999L, price);
+        try {
+            accountService.transfer(studentId, -999999L, price);
+        } catch (BusinessException e) {
+            throw e;
+        }
         log.info("账户:{} 支付了 {}", studentId, price);
         goods.setGoodsInventory(goodsInventory - order.getGoodsNum());
         int update = goodsMapper.updateById(goods);
@@ -250,11 +256,10 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             OrderVo orderVo = new OrderVo();
             orderVo.setOrderId(orderId);
             orderVo.setPassword(orderListVo.getPassword());
-            Orders orders = null;
-            Result payment = null;
+            Orders  orders = baseMapper.selectById(orderId);
+            Result payment;
             try {
                 payment = payment(orderVo);
-                orders = baseMapper.selectById(orderId);
                 if (payment.getCode() != 200){
                     Goods goods = goodsMapper.selectById(orders.getGoodsId());
                     String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + payment.getMessage();
