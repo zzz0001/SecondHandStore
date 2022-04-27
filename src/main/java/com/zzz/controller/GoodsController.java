@@ -4,7 +4,7 @@ package com.zzz.controller;
 import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Account;
-import com.zzz.pojo.entity.vo.GoodsVO;
+import com.zzz.pojo.vo.GoodsVO;
 import com.zzz.service.AccountService;
 import com.zzz.service.GoodsService;
 import lombok.extern.slf4j.Slf4j;

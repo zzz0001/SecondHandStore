@@ -3,8 +3,8 @@ package com.zzz.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Orders;
-import com.zzz.pojo.entity.vo.OrderListVo;
-import com.zzz.pojo.entity.vo.OrderVo;
+import com.zzz.pojo.vo.OrderListVo;
+import com.zzz.pojo.vo.OrderVo;
 
 /**
  * <p>
@@ -39,4 +39,6 @@ public interface OrdersService extends IService<Orders> {
     Result getBySingleStatus(Long studentId, Integer status);
 
     Result getByOrderId(Long orderId);
+
+    Result urge(Long orderId);
 }

@@ -3,12 +3,13 @@ package com.zzz.service.impl;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zzz.Util.MessageUtils;
 import com.zzz.Util.Result;
 import com.zzz.exception.BusinessException;
 import com.zzz.mapper.*;
 import com.zzz.pojo.entity.*;
-import com.zzz.pojo.entity.vo.OrderListVo;
-import com.zzz.pojo.entity.vo.OrderVo;
+import com.zzz.pojo.vo.OrderListVo;
+import com.zzz.pojo.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.ImageService;
 import com.zzz.service.OrdersService;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -142,13 +142,16 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         Orders orders = baseMapper.selectById(orderId);
         orders.setOrderStatus(5);
         int update = baseMapper.updateById(orders);
-        if (update == 1){
-            return Result.success("退货申请成功");
-        }
-        try {
-            webSocket.sendMessage(orders.getStudentId().toString(),"1");
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (update == 1) {
+            try {
+                Store store = storeMapper.selectById(orders.getStoreId());
+                String message = MessageUtils.getMessage(3, "1");
+                webSocket.sendMessage(store.getStudentId().toString(), message);
+                return Result.success("退货申请成功");
+            } catch (RedisConnectionFailureException e) {
+                log.error("Redis连接失败");
+                return Result.success("退货申请成功");
+            }
         }
         return Result.fail("退货申请失败");
     }
@@ -181,6 +184,23 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         map.put("goods",goods);
         map.put("store",store);
         return Result.success(map);
+    }
+
+    @Override
+    public Result urge(Long orderId) {
+        Orders orders = baseMapper.selectById(orderId);
+        orders.setUrgent(1);
+        int update = baseMapper.updateById(orders);
+        if (update == 1){
+            Store store = storeMapper.selectById(orders.getStoreId());
+            try {
+                String message = MessageUtils.getMessage(2, "1");
+                webSocket.sendMessage(store.getStudentId().toString(), message);
+            } catch (RedisConnectionFailureException e) {
+                log.error("Redis连接失败");
+            }
+        }
+        return Result.success(null);
     }
 
     @Override
@@ -265,7 +285,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
                     String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + payment.getMessage();
                     result.add(message);
                 } else {
-                    webSocket.sendMessage(orders.getStudentId().toString(),"1");
+                    String message = MessageUtils.getMessage(1, "1");
+                    Store store = storeMapper.selectById(orders.getStoreId());
+                    webSocket.sendMessage(store.getStudentId().toString(),message);
                 }
             } catch (RedisConnectionFailureException e){
                 log.error("redis连接连接错误");
@@ -328,7 +350,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         Store store = storeMapper.selectById(storeId);
         Long sell = store.getStudentId();
         accountService.transfer(sell, buy, price);
-        log.info("商家{} 向买家{} 转账 {}", sell, buy, price);
+        log.info("商家{} 向 买家{} 转账 {}", sell, buy, price);
         // 将订单状态改为已退货
         order.setOrderStatus(6);
         order.setReturnDate(LocalDateTime.now());

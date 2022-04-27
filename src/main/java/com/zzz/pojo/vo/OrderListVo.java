@@ -1,4 +1,4 @@
-package com.zzz.pojo.entity.vo;
+package com.zzz.pojo.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

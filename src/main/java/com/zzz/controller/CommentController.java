@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Comment;
 import com.zzz.pojo.entity.Image;
-import com.zzz.pojo.entity.vo.CommentVO;
+import com.zzz.pojo.vo.CommentVO;
 import com.zzz.service.CommentService;
 import com.zzz.service.ImageService;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;

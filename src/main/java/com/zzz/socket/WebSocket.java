@@ -117,7 +117,7 @@ public class WebSocket {
         log.error("WebSocket发生错误：" + throwable);
     }
 
-    public void sendMessage(String studentId,String message) throws IOException {
+    public void sendMessage(String studentId,String message) {
         // 可以修改为对某个客户端发消息
         try {
             WebSocket socket = clients.get("order"+studentId);

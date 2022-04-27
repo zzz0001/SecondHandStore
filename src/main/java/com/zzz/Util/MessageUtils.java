@@ -31,7 +31,6 @@ public class MessageUtils {
         return result;
     }
 
-
     public static String getMessage( String fromName, Object message) {
         ResultMessage resultMessage = new ResultMessage();
         resultMessage.setMessage(message);
@@ -39,6 +38,7 @@ public class MessageUtils {
         String result = JSONUtil.toJsonStr(resultMessage);
         return result;
     }
+
     public static String getMessage(Integer code, Object message) {
         ResultMessage resultMessage = new ResultMessage();
         resultMessage.setMessageCode(code);

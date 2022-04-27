@@ -13,9 +13,10 @@ import com.zzz.pojo.entity.Comment;
 import com.zzz.pojo.entity.Image;
 import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.User;
-import com.zzz.pojo.entity.vo.CommentVO;
+import com.zzz.pojo.vo.CommentVO;
 import com.zzz.service.CommentService;
 import com.zzz.service.ImageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ import java.util.List;
  * @author zzz
  * @since 2022-03-02
  */
+@Slf4j
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
 
@@ -60,15 +62,21 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             image.setImagePath(path);
             images.add(image);
         });
-        boolean sava = imageService.saveBatch(images);
-        if (insert == 1 && sava){
+        log.info("--------{}",commentVO);
+        log.info("++++++++{}",images.size());
+        if(images.size()>0){
+            log.info("------进来了");
+            boolean sava = imageService.saveBatch(images);
+            log.info("==========={}",sava);
+        }
+        if (insert == 1){
             Long orderId = commentVO.getOrderId();
             Orders orders = ordersMapper.selectById(orderId);
             orders.setOrderStatus(4);
             ordersMapper.updateById(orders);
             return Result.success("评价成功");
         }
-        return Result.fail("评价失败");
+        throw new BusinessException("评价失败");
     }
 
     @Transactional(rollbackFor = Exception.class)

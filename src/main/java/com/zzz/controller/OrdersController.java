@@ -2,12 +2,13 @@ package com.zzz.controller;
 
 
 import com.zzz.Util.JwtUtils;
+import com.zzz.Util.MessageUtils;
 import com.zzz.Util.Result;
 import com.zzz.exception.BusinessException;
 import com.zzz.pojo.entity.Orders;
 import com.zzz.pojo.entity.User;
-import com.zzz.pojo.entity.vo.OrderListVo;
-import com.zzz.pojo.entity.vo.OrderVo;
+import com.zzz.pojo.vo.OrderListVo;
+import com.zzz.pojo.vo.OrderVo;
 import com.zzz.service.AccountService;
 import com.zzz.service.OrdersService;
 import com.zzz.service.UserService;
@@ -124,7 +125,8 @@ public class OrdersController {
         try {
             result = orderService.payment(orderVo);
             if (result.getCode() == 200){
-                webSocket.sendMessage(result.getData().toString(),"1");
+                String message = MessageUtils.getMessage(1, "1");
+                webSocket.sendMessage(result.getData().toString(),message);
             }
             return result;
         } catch (RedisConnectionFailureException e){
@@ -146,9 +148,16 @@ public class OrdersController {
         return result;
     }
 
-    @ApiOperation(value = "发货接口")
+    @ApiOperation(value = "催发货接口")
     @RequiresAuthentication
-    @PutMapping("/order/deliver/{orderId}")
+    @PutMapping("/order/urge/{orderId}")
+    public Result urge(@PathVariable Long orderId) {
+        Result result = orderService.urge(orderId);
+        return result;
+    }
+
+    @RequiresAuthentication
+    @PutMapping("/order/delivery/{orderId}")
     public Result deliver(@PathVariable Long orderId) {
         Result result = orderService.delivery(orderId);
         return result;

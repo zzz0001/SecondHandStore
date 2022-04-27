@@ -3,8 +3,7 @@ package com.zzz.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zzz.Util.Result;
 import com.zzz.pojo.entity.Goods;
-import com.zzz.pojo.entity.GoodsDto;
-import com.zzz.pojo.entity.vo.GoodsVO;
+import com.zzz.pojo.vo.GoodsVO;
 
 /**
  * <p>

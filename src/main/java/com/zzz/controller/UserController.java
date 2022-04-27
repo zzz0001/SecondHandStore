@@ -8,7 +8,7 @@ import com.zzz.Util.JwtUtils;
 import com.zzz.Util.Result;
 import com.zzz.exception.ExceptionEnum;
 import com.zzz.pojo.entity.User;
-import com.zzz.pojo.entity.vo.UserVo;
+import com.zzz.pojo.vo.UserVo;
 import com.zzz.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

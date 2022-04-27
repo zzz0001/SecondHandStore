@@ -51,26 +51,30 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> implements
         String newPath = "C:/Users/Administrator/IDEA workspace/secondhandstorevue/public" + path;
         boolean delete = new File(newPath).delete();
         QueryWrapper<Image> wrapper = new QueryWrapper<Image>().eq("image_path", path);
-        int i = baseMapper.delete(wrapper);
+        baseMapper.delete(wrapper);
         return delete;
     }
 
     @Override
     public Result removeByCommentId(Long id) {
-        int delete = baseMapper.delete(new QueryWrapper<Image>().eq("comment_id", id));
-        if (delete > 0) {
-            return Result.success("删除成功");
-        }
-        return Result.fail("删除失败");
+        List<String> images = getImagesByCommentId(id);
+        images.forEach(image ->{
+            String newPath = "C:/Users/Administrator/IDEA workspace/secondhandstorevue/public" + image;
+            boolean delete = new File(newPath).delete();
+        });
+        baseMapper.delete(new QueryWrapper<Image>().eq("comment_id", id));
+        return Result.success("删除成功");
     }
 
     @Override
     public Result removeByGoodsId(Long id) {
-        int delete = baseMapper.delete(new QueryWrapper<Image>().eq("goods_id", id));
-        if (delete >= 0) {
-            return Result.success("删除成功");
-        }
-        return Result.fail("删除失败");
+        List<String> images = getImagesByGoodsId(id);
+        images.forEach(image ->{
+            String newPath = "C:/Users/Administrator/IDEA workspace/secondhandstorevue/public" + image;
+            boolean delete = new File(newPath).delete();
+        });
+        baseMapper.delete(new QueryWrapper<Image>().eq("goods_id", id));
+        return Result.success("删除成功");
     }
 
     @Override

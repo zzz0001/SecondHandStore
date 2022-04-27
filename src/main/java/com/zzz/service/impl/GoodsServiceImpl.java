@@ -11,7 +11,7 @@ import com.zzz.mapper.OrdersMapper;
 import com.zzz.pojo.entity.Goods;
 import com.zzz.pojo.entity.Image;
 import com.zzz.pojo.entity.Orders;
-import com.zzz.pojo.entity.vo.GoodsVO;
+import com.zzz.pojo.vo.GoodsVO;
 import com.zzz.service.CommentService;
 import com.zzz.service.GoodsService;
 import com.zzz.service.ImageService;
@@ -108,7 +108,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         imageService.removeByGoodsId(goodsId);
         commentService.removeCommentsByGoodsId(goodsId);
         int delete = baseMapper.deleteById(goodsId);
-
         if (delete == 1) {
             return Result.success("商品下架成功");
         }
@@ -180,14 +179,20 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
     public Result getGoodsByName(String goodsName, Integer page) {
         Page<Goods> goodsPage = new Page<>(page,10);
         Page<Goods> resultPage = baseMapper.selectPage(goodsPage, new QueryWrapper<Goods>().like("goods_name",goodsName).orderByDesc("goods_id"));
-        return getGoodsResult(resultPage);
+        if (resultPage.getRecords().size() > 0){
+            return getGoodsResult(resultPage);
+        }
+        return Result.success(null);
     }
 
     @Override
     public Result getGoodsByCategory(Integer category,Integer page) {
         Page<Goods> goodsPage = new Page<>(page,10);
         Page<Goods> resultPage = baseMapper.selectPage(goodsPage, new QueryWrapper<Goods>().eq("goods_category",category).orderByDesc("goods_id"));
-        return getGoodsResult(resultPage);
+        if (resultPage.getRecords().size() > 0){
+            return getGoodsResult(resultPage);
+        }
+        return Result.success(null);
     }
 
 }

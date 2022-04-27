@@ -52,8 +52,9 @@ public class RootController {
         response.setHeader("Authorization", token);
         response.setHeader("Access-control-Expose-Headers", "Authorization");
         return Result.success("登录成功", MapUtil.builder()
-                .put("studentId", root.getStudentId())
-                .put("username", root.getUserName())
+                .put("studentId", root2.getStudentId())
+                .put("username", root2.getUserName())
+                .put("picture","/rootPicture.jpeg")
                 .map());
     }
 
