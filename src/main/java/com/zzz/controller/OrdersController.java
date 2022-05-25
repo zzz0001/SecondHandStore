@@ -116,6 +116,14 @@ public class OrdersController {
         return result;
     }
 
+    @RequiresAuthentication
+    @GetMapping("/orderPageByStatus/{status}/{page}")
+    public Result orderPageByStatus(@PathVariable Integer status,
+                                    @PathVariable Integer page){
+        Result result = orderService.getPageByStatus(page,status);
+        return result;
+    }
+
     @ApiOperation(value = "付款接口")
     @RequiresAuthentication
     @PutMapping("/order")

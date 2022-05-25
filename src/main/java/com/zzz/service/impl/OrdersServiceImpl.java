@@ -2,6 +2,7 @@ package com.zzz.service.impl;
 
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zzz.Util.MessageUtils;
 import com.zzz.Util.Result;
@@ -65,14 +66,14 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     public Result saveOrder(Orders order) {
         Long goodsId = order.getGoodsId();
         Long studentId = order.getStudentId();
-        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id",studentId).eq("goods_id",goodsId).eq("order_status",0);
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("goods_id", goodsId).eq("order_status", 0);
         Orders orders = baseMapper.selectOne(wrapper);
-        if (orders != null){
-            return Result.fail(415,"商品已添加到购物车,不能重复添加",orders.getOrderId());
+        if (orders != null) {
+            return Result.fail(415, "商品已添加到购物车,不能重复添加", orders.getOrderId());
         }
         Goods goods = goodsMapper.selectById(goodsId);
         Integer goodsInventory = goods.getGoodsInventory();
-        if (goodsInventory<order.getGoodsNum()){
+        if (goodsInventory < order.getGoodsNum()) {
             return Result.fail("商品库存不足，下单失败");
         }
         QueryWrapper<Store> queryWrapper = new QueryWrapper<Store>().eq("student_id", order.getStoreId());
@@ -90,15 +91,15 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     private Result getResultByOrder(QueryWrapper<Orders> wrapper) {
         List<Orders> orders = baseMapper.selectList(wrapper);
         ArrayList<Object> result = new ArrayList<>();
-        orders.forEach(order ->{
+        orders.forEach(order -> {
             HashMap<String, Object> map = new HashMap<>();
             List<String> images = imageService.getImagesByGoodsId(order.getGoodsId());
             Goods goods = goodsMapper.selectById(order.getGoodsId());
             Store store = storeMapper.selectById(order.getStoreId());
-            map.put("order",order);
-            map.put("images",images);
-            map.put("goods",goods);
-            map.put("store",store);
+            map.put("order", order);
+            map.put("images", images);
+            map.put("goods", goods);
+            map.put("store", store);
             result.add(map);
         });
         return Result.success(result);
@@ -107,15 +108,15 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     private Result getResultByStoreId(QueryWrapper<Orders> wrapper) {
         List<Orders> orders = baseMapper.selectList(wrapper);
         ArrayList<Object> result = new ArrayList<>();
-        orders.forEach(order ->{
+        orders.forEach(order -> {
             HashMap<String, Object> map = new HashMap<>();
             List<String> images = imageService.getImagesByGoodsId(order.getGoodsId());
             Goods goods = goodsMapper.selectById(order.getGoodsId());
             User user = userMapper.selectById(order.getStudentId());
-            map.put("order",order);
-            map.put("images",images);
-            map.put("goods",goods);
-            map.put("user",user);
+            map.put("order", order);
+            map.put("images", images);
+            map.put("goods", goods);
+            map.put("user", user);
             result.add(map);
         });
         return Result.success(result);
@@ -133,7 +134,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         QueryWrapper<Store> queryWrapper = new QueryWrapper<Store>().eq("student_id", studentId);
         Store store = storeMapper.selectOne(queryWrapper);
         Long storeId = store.getStoreId();
-        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).eq("order_status",status).orderByDesc("order_date");
+        QueryWrapper<Orders> wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).eq("order_status", status).orderByDesc("order_date");
         return getResultByStoreId(wrapper);
     }
 
@@ -161,9 +162,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         Store store = storeMapper.selectOne(new QueryWrapper<Store>().eq("student_id", studentId));
         Long storeId = store.getStoreId();
         QueryWrapper<Orders> wrapper = null;
-        if (status <5 ){
+        if (status < 5) {
             wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).eq("order_status", status).orderByDesc("create_time");
-        }else {
+        } else {
             wrapper = new QueryWrapper<Orders>().eq("store_id", storeId).ge("order_status", status).orderByDesc("create_time");
         }
         return getResultByStoreId(wrapper);
@@ -179,10 +180,10 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         List<String> images = imageService.getImagesByGoodsId(order.getGoodsId());
         Goods goods = goodsMapper.selectById(order.getGoodsId());
         Store store = storeMapper.selectById(order.getStoreId());
-        map.put("order",order);
-        map.put("images",images);
-        map.put("goods",goods);
-        map.put("store",store);
+        map.put("order", order);
+        map.put("images", images);
+        map.put("goods", goods);
+        map.put("store", store);
         return Result.success(map);
     }
 
@@ -191,7 +192,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         Orders orders = baseMapper.selectById(orderId);
         orders.setUrgent(1);
         int update = baseMapper.updateById(orders);
-        if (update == 1){
+        if (update == 1) {
             Store store = storeMapper.selectById(orders.getStoreId());
             try {
                 String message = MessageUtils.getMessage(2, "1");
@@ -204,11 +205,41 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     }
 
     @Override
-    public Result getByStatus(Long studentId,Integer status) {
+    public Result getPageByStatus(Integer page, Integer status) {
+        Page<Orders> ordersPage = new Page<>(page, 10);
         QueryWrapper<Orders> wrapper = null;
-        if (status <4 ){
+        if (status < 4) {
+            wrapper = new QueryWrapper<Orders>().eq("order_status", status).orderByDesc("order_id");
+        } else {
+            wrapper = new QueryWrapper<Orders>().ge("order_status", status).orderByDesc("order_id");
+        }
+        Page<Orders> resultPage = baseMapper.selectPage(ordersPage, wrapper);
+        List<Orders> orders = resultPage.getRecords();
+        ArrayList<Object> resultValue = new ArrayList<>();
+        orders.forEach(order -> {
+            HashMap<String, Object> map = new HashMap<>();
+            List<String> images = imageService.getImagesByGoodsId(order.getGoodsId());
+            Goods goods = goodsMapper.selectById(order.getGoodsId());
+            Store store = storeMapper.selectById(order.getStoreId());
+            map.put("order", order);
+            map.put("images", images);
+            map.put("goods", goods);
+            map.put("store", store);
+            resultValue.add(map);
+        });
+        HashMap<String, Object> result = new HashMap<>();
+        resultPage.setRecords(null);
+        result.put("page", resultPage);
+        result.put("orders", resultValue);
+        return Result.success(result);
+    }
+
+    @Override
+    public Result getByStatus(Long studentId, Integer status) {
+        QueryWrapper<Orders> wrapper = null;
+        if (status < 4) {
             wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).eq("order_status", status).orderByDesc("create_time");
-        }else {
+        } else {
             wrapper = new QueryWrapper<Orders>().eq("student_id", studentId).ge("order_status", status).orderByDesc("create_time");
         }
         return getResultByOrder(wrapper);
@@ -218,7 +249,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     @Transactional(rollbackFor = Exception.class)
     @Retryable(value = RetryException.class, maxAttempts = 5, backoff = @Backoff(delay = 100L, multiplier = 2))
     @Override
-    public Result payment(OrderVo orderVo){
+    public Result payment(OrderVo orderVo) {
         String password = orderVo.getPassword();
         Long orderId = orderVo.getOrderId();
         Orders order = baseMapper.selectById(orderId);
@@ -230,12 +261,12 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         }
         Long sellerId = goods.getStudentId();
         boolean lock = accountService.isLock(sellerId);
-        if (lock){
+        if (lock) {
             throw new BusinessException("商家账户被锁定，不可购买该店铺商品");
         }
         Long studentId = order.getStudentId();
         Account account = accountService.getById(studentId);
-        if (!account.getPassword().equals(SecureUtil.md5(password))){
+        if (!account.getPassword().equals(SecureUtil.md5(password))) {
             return Result.fail("密码错误");
         }
         Double price = order.getTotalPrice();
@@ -247,7 +278,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         log.info("账户:{} 支付了 {}", studentId, price);
         goods.setGoodsInventory(goodsInventory - order.getGoodsNum());
         int update = goodsMapper.updateById(goods);
-        if (update != 1){
+        if (update != 1) {
             throw new RetryException("商品库存更新失败");
         }
         log.info("商品:{} 销售了 {}", goodsId, order.getGoodsNum());
@@ -272,28 +303,28 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     public Result paymentList(OrderListVo orderListVo) {
         ArrayList<String> result = new ArrayList<>();
         ArrayList<Long> orderIdList = orderListVo.getOrderIdList();
-        orderIdList.forEach(orderId ->{
+        orderIdList.forEach(orderId -> {
             OrderVo orderVo = new OrderVo();
             orderVo.setOrderId(orderId);
             orderVo.setPassword(orderListVo.getPassword());
-            Orders  orders = baseMapper.selectById(orderId);
+            Orders orders = baseMapper.selectById(orderId);
             Result payment;
             try {
                 payment = payment(orderVo);
-                if (payment.getCode() != 200){
+                if (payment.getCode() != 200) {
                     Goods goods = goodsMapper.selectById(orders.getGoodsId());
-                    String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + payment.getMessage();
+                    String message = "商品：" + goods.getGoodsName() + " 支付失败, 原因：" + payment.getMessage();
                     result.add(message);
                 } else {
                     String message = MessageUtils.getMessage(1, "1");
                     Store store = storeMapper.selectById(orders.getStoreId());
-                    webSocket.sendMessage(store.getStudentId().toString(),message);
+                    webSocket.sendMessage(store.getStudentId().toString(), message);
                 }
-            } catch (RedisConnectionFailureException e){
+            } catch (RedisConnectionFailureException e) {
                 log.error("redis连接连接错误");
             } catch (Exception e) {
                 Goods goods = goodsMapper.selectById(orders.getGoodsId());
-                String message = "商品："+ goods.getGoodsName() + " 支付失败, 原因：" + e.getMessage();
+                String message = "商品：" + goods.getGoodsName() + " 支付失败, 原因：" + e.getMessage();
                 result.add(message);
             }
         });
