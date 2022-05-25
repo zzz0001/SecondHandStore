@@ -62,12 +62,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             image.setImagePath(path);
             images.add(image);
         });
-        log.info("--------{}",commentVO);
-        log.info("++++++++{}",images.size());
         if(images.size()>0){
-            log.info("------进来了");
             boolean sava = imageService.saveBatch(images);
-            log.info("==========={}",sava);
         }
         if (insert == 1){
             Long orderId = commentVO.getOrderId();
