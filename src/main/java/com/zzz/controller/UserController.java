@@ -48,7 +48,11 @@ public class UserController {
     public Result List() {
         List<User> users = userService.list();
         users.forEach( user -> {
-            user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
+            if (user.getBirthDay() != null){
+                user.setAge(DateUtil.ageOfNow(user.getBirthDay()));
+            } else {
+                user.setAge(0);
+            }
         });
         return Result.success(users);
     }
